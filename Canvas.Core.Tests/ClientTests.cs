@@ -7,6 +7,23 @@ namespace Canvas.Core.Tests;
 public class ClientTests
 {
     [Fact]
+    public void CoursesReturnsAClient()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        var client = new Client(conn);
+
+        // Act
+        var child = client.Courseses;
+
+        // Assert
+        child.ShouldSatisfyAllConditions(
+            () => child.ShouldNotBeNull(),
+            () => child.ShouldBeAssignableTo<ICourses>()
+        );
+    }
+
+    [Fact]
     public void CurrentUserReturnsAClient()
     {
         // Arrange

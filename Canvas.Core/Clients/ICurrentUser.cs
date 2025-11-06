@@ -12,5 +12,5 @@ public interface ICurrentUser
     /// </summary>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="User"/> containing the current user details.</returns>
-    Task<User?> Get(CancellationToken cancellationToken = default);
+    Task<User?> Retrieve(CancellationToken cancellationToken = default);
 }

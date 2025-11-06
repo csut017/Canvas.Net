@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Canvas.Core.Entities;
+﻿namespace Canvas.Core.Entities;
 
 /// <summary>
 /// An entity with an identifier.

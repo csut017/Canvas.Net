@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace Canvas.Core.Entities;
+﻿namespace Canvas.Core.Entities;
 
 /// <summary>
 /// A Canvas user.
@@ -58,62 +56,4 @@ public record User
             ? Name
             : NameDisplay;
     }
-
-    ///// <summary>
-    ///// The options for listing users in a course.
-    ///// </summary>
-    //public class ListOptions
-    //    : Models.ListOptions
-    //{
-    //    /// <summary>
-    //    /// The enrolment states to filter by.
-    //    /// </summary>
-    //    public List<EnrolmentState> EnrolmentStates { get; } = [];
-
-    //    /// <summary>
-    //    /// The enrolment types to filter by.
-    //    /// </summary>
-    //    public List<EnrolmentType> EnrolmentTypes { get; } = [];
-
-    //    /// <summary>
-    //    /// Whether to include the enrollments or not.
-    //    /// </summary>
-    //    public bool IncludeEnrollments { get; init; }
-
-    //    protected override void AppendParameters(Parameters parameters)
-    //    {
-    //        base.AppendParameters(parameters);
-    //        foreach (var state in EnrolmentStates)
-    //        {
-    //            parameters.Add("enrollment_state[]", state.ToString().ToLowerInvariant());
-    //        }
-
-    //        foreach (var type in EnrolmentTypes)
-    //        {
-    //            parameters.Add("enrollment_type[]", type.ToString().ToLowerInvariant());
-    //        }
-
-    //        if (IncludeEnrollments) parameters.Add("include[]", "enrollments");
-    //    }
-    //}
-
-    ///// <summary>
-    ///// Options for listing students in a course.
-    ///// </summary>
-    //public class StudentListOptions
-    //    : ListOptions
-    //{
-    //    /// <summary>
-    //    /// Whether to include the Group IDs or not.
-    //    /// </summary>
-    //    public bool IncludeGroupIds { get; init; }
-
-    //    protected override void AppendParameters(Parameters parameters)
-    //    {
-    //        EnrolmentTypes.Clear();
-    //        EnrolmentTypes.Add(EnrolmentType.Student);
-    //        base.AppendParameters(parameters);
-    //        if (IncludeGroupIds) parameters.Add("include[]", "group_ids");
-    //    }
-    //}
 }

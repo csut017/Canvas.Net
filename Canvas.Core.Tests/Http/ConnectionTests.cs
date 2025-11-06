@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Canvas.Core.Http;
+using Canvas.Core.Settings;
+using HttpMultipartParser;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,8 +12,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Canvas.Core.Http;
-using HttpMultipartParser;
 
 namespace Canvas.Core.Tests.Http;
 
@@ -153,7 +154,7 @@ public class ConnectionTests
         var handler = new FakeHandler(data.Select(i => i.AsMessage(HttpStatusCode.OK)).ToArray());
         var client = new HttpClient(handler);
         var conn = new Connection("http://canvas.com", "1234", client: client);
-        var settings = new ListSettings
+        var settings = new List
         {
             MaxPages = 2,
         };
@@ -527,7 +528,7 @@ public class ConnectionTests
         public List<Tuple<string, string>> Headers { get; } = [];
 
         [JsonPropertyName("name")]
-        public required string Name { get; set; }
+        public string Name { get; set; }
 
         public HttpResponseMessage AsMessage(HttpStatusCode statusCode)
         {

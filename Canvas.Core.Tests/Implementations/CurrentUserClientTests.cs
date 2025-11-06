@@ -1,8 +1,8 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Canvas.Core.Entities;
+﻿using Canvas.Core.Entities;
 using Canvas.Core.Implementations;
 using FakeItEasy;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Canvas.Core.Tests.Implementations;
 
@@ -10,7 +10,7 @@ namespace Canvas.Core.Tests.Implementations;
 public class CurrentUserClientTests
 {
     [Fact]
-    public async Task GetCallsUnderlyingConnection()
+    public async Task RetrieveCallsUnderlyingConnection()
     {
         // Arrange
         var conn = A.Fake<IConnection>();
@@ -22,7 +22,7 @@ public class CurrentUserClientTests
         var client = new CurrentUserClient(conn);
 
         // Act
-        var user = await client.Get(
+        var user = await client.Retrieve(
             TestContext.Current.CancellationToken);
 
         // Assert

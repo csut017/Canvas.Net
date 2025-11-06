@@ -10,7 +10,7 @@ public interface IClient
     /// <summary>
     /// The interface for working with courses.
     /// </summary>
-    ICourse Courses { get; }
+    ICourses Courseses { get; }
 
     /// <summary>
     /// The interface for working with the current user.

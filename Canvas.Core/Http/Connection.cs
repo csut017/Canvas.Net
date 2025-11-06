@@ -2,6 +2,7 @@
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Canvas.Core.Settings;
 using CommunityToolkit.Diagnostics;
 using Serilog;
 
@@ -93,10 +94,10 @@ public class Connection
     public async IAsyncEnumerable<TItem> List<TItem>(
         string url,
         Parameters parameters,
-        ListSettings? settings = null,
+        List? settings = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        settings ??= new ListSettings();
+        settings ??= new List();
         var pageNumber = 0;
         var fullUrl = url + parameters;
         _logger?.Debug("Listing {type} entities from {url}", typeof(TItem).Name, fullUrl);

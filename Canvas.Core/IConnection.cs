@@ -1,4 +1,6 @@
-﻿namespace Canvas.Core;
+﻿using Canvas.Core.Settings;
+
+namespace Canvas.Core;
 
 /// <summary>
 /// A connection to a Canvas installation.
@@ -33,7 +35,7 @@ public interface IConnection
     IAsyncEnumerable<TItem> List<TItem>(
         string url,
         Parameters parameters,
-        ListSettings? settings = null,
+        List? settings = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

@@ -31,7 +31,7 @@ internal class CurrentUserClient
     /// </summary>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="User"/> containing the current user details.</returns>
-    public Task<User?> Get(CancellationToken cancellationToken = default)
+    public Task<User?> Retrieve(CancellationToken cancellationToken = default)
     {
         _logger?.Debug("Retrieving current user details");
         return _connection.Retrieve<User>(

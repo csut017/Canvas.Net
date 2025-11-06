@@ -11,6 +11,7 @@ namespace Canvas.Core;
 internal class Client
     : IClient
 {
+    private readonly Lazy<ICourses> _coursesClient;
     private readonly Lazy<ICurrentUser> _currentUserClient;
 
     /// <summary>
@@ -24,13 +25,14 @@ internal class Client
         var logger1 = logger?.ForContext<Client>();
 
         // Initialize the underlying clients
+        _coursesClient = new Lazy<ICourses>(() => new CoursesClient(connection, logger1));
         _currentUserClient = new Lazy<ICurrentUser>(() => new CurrentUserClient(connection, logger1));
     }
 
     /// <summary>
     /// The interface for working with courses.
     /// </summary>
-    public ICourse Courses => throw new NotImplementedException();
+    public ICourses Courseses => _coursesClient.Value;
 
     /// <summary>
     /// The interface for working with the current user.
