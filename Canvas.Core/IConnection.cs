@@ -28,13 +28,11 @@ public interface IConnection
     /// </summary>
     /// <typeparam name="TItem">The type of item to retrieve.</typeparam>
     /// <param name="url">The URL to use.</param>
-    /// <param name="parameters">The parameters to pass.</param>
     /// <param name="settings">The settings to use in the list operation.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{TItem}"/> containing the entities from Canvas.</returns>
     IAsyncEnumerable<TItem> List<TItem>(
         string url,
-        Parameters parameters,
         List? settings = null,
         CancellationToken cancellationToken = default);
 

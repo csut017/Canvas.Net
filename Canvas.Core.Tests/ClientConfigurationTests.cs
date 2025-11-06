@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Canvas.Core.Settings;
+using FakeItEasy;
+using Serilog;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Canvas.Core.Settings;
-using FakeItEasy;
-using Serilog;
 
 namespace Canvas.Core.Tests;
 
@@ -65,8 +65,7 @@ public class ClientConfigurationTests
             throw new NotImplementedException();
         }
 
-        public IAsyncEnumerable<TItem> List<TItem>(string url, Parameters parameters, List settings = null,
-            CancellationToken cancellationToken = default)
+        public IAsyncEnumerable<TItem> List<TItem>(string url, List settings = null, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }

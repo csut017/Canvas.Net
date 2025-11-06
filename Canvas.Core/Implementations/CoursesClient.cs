@@ -37,7 +37,14 @@ internal class CoursesClient
     public IAsyncEnumerable<Course> ListForAccount(ulong accountId, CourseList? settings = null,
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        settings ??= new();
+        settings = settings with { Options = settings.Options | CourseInclude.Term };
+
+        _logger?.Debug("Listing courses for account with id {id}", accountId);
+        return _connection.List<Course>(
+            $"/api/v1/accounts/{accountId}/courses",
+            settings,
+            cancellationToken);
     }
 
     /// <summary>
@@ -50,7 +57,7 @@ internal class CoursesClient
     public IAsyncEnumerable<Course> ListForAccount(Account account, CourseList? settings = null,
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return ListForAccount(account.Id, settings, cancellationToken);
     }
 
     /// <summary>
@@ -61,7 +68,14 @@ internal class CoursesClient
     /// <returns>An <see cref="IQueryable{Course}"/> containing the courses for the current user.</returns>
     public IAsyncEnumerable<Course> ListForCurrentUser(CourseList? settings = null, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        settings ??= new();
+        settings = settings with { Options = settings.Options | CourseInclude.Term };
+
+        _logger?.Debug("Listing courses for current user");
+        return _connection.List<Course>(
+            "/api/v1/courses",
+            settings,
+            cancellationToken);
     }
 
     /// <summary>

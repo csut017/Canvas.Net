@@ -1,10 +1,10 @@
-﻿using System.Net;
+﻿using Canvas.Core.Settings;
+using CommunityToolkit.Diagnostics;
+using Serilog;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Canvas.Core.Settings;
-using CommunityToolkit.Diagnostics;
-using Serilog;
 
 namespace Canvas.Core.Http;
 
@@ -87,19 +87,17 @@ public class Connection
     /// </summary>
     /// <typeparam name="TItem">The type of item to retrieve.</typeparam>
     /// <param name="url">The URL to use.</param>
-    /// <param name="parameters">The parameters to pass.</param>
     /// <param name="settings">The settings to use in the list operation.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{TItem}"/> containing the entities from Canvas.</returns>
     public async IAsyncEnumerable<TItem> List<TItem>(
         string url,
-        Parameters parameters,
         List? settings = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         settings ??= new List();
         var pageNumber = 0;
-        var fullUrl = url + parameters;
+        var fullUrl = url + settings.ToParameters();
         _logger?.Debug("Listing {type} entities from {url}", typeof(TItem).Name, fullUrl);
         var cancel = false;
         while (!cancel && !string.IsNullOrEmpty(fullUrl) && pageNumber++ < settings.MaxPages)

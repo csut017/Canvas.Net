@@ -112,7 +112,7 @@ public class ConnectionTests
 
         // Act
         var received = await conn
-            .List<FakeItem>("api/v1/test", [], cancellationToken: TestContext.Current.CancellationToken)
+            .List<FakeItem>("api/v1/test", new List(), cancellationToken: TestContext.Current.CancellationToken)
             .ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -135,7 +135,7 @@ public class ConnectionTests
 
         // Act
         var received = await conn
-            .List<FakeItem>("api/v1/test", [], cancellationToken: TestContext.Current.CancellationToken)
+            .List<FakeItem>("api/v1/test", new List(), cancellationToken: TestContext.Current.CancellationToken)
             .ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
@@ -161,7 +161,7 @@ public class ConnectionTests
 
         // Act
         var received = await conn
-            .List<FakeItem>("api/v1/test", [], settings, cancellationToken: TestContext.Current.CancellationToken)
+            .List<FakeItem>("api/v1/test", settings, cancellationToken: TestContext.Current.CancellationToken)
             .ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
