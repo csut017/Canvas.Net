@@ -43,6 +43,24 @@ public class ClientConfigurationTests
     }
 
     [Fact]
+    public void BuildSetsLoggerOnConnection()
+    {
+        // Arrange
+        var logger = A.Fake<ILogger>();
+        var conn = new FakeConnection();
+        var config = new ClientConfiguration
+        {
+            Connection = conn
+        }.UseLogger(logger);
+
+        // Act
+        var client = config.Build();
+
+        // Assert
+        conn.Logger.ShouldNotBeNull();
+    }
+
+    [Fact]
     public void UseLoggerSetsTheLogger()
     {
         // Arrange
@@ -58,8 +76,10 @@ public class ClientConfigurationTests
     }
 
     public class FakeConnection
-        : IConnection
+        : ILoggingConnection
     {
+        public ILogger Logger { get; private set; }
+
         public Task<HttpResponseMessage> Get(string url, bool throwExceptionOnFailure = true, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
@@ -104,8 +124,13 @@ public class ClientConfigurationTests
             throw new NotImplementedException();
         }
 
+        public void UpdateLogger(ILogger logger)
+        {
+            Logger = logger;
+        }
+
         public Task<TItem> UploadFile<TItem>(Stream stream, string url, Dictionary<string, string> formValues, string fileName,
-            CancellationToken cancellationToken = default) where TItem : class
+                    CancellationToken cancellationToken = default) where TItem : class
         {
             throw new NotImplementedException();
         }

@@ -14,7 +14,7 @@ public class ClientTests
         var client = new Client(conn);
 
         // Act
-        var child = client.Courseses;
+        var child = client.Courses;
 
         // Assert
         child.ShouldSatisfyAllConditions(

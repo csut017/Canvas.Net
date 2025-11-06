@@ -32,7 +32,7 @@ internal class Client
     /// <summary>
     /// The interface for working with courses.
     /// </summary>
-    public ICourses Courseses => _coursesClient.Value;
+    public ICourses Courses => _coursesClient.Value;
 
     /// <summary>
     /// The interface for working with the current user.

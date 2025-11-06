@@ -1,6 +1,8 @@
 ﻿using Canvas.Core.Http;
 using Canvas.Core.Settings;
+using FakeItEasy;
 using HttpMultipartParser;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -430,6 +432,22 @@ public class ConnectionTests
 
         // Assert
         item.ShouldBeNull();
+    }
+
+    [Fact]
+    public void UpdateLoggerSetsLogger()
+    {
+        // Arrange
+        var logger = A.Fake<ILogger>();
+        var handler = new FakeJsonHandler(new { }, HttpStatusCode.BadRequest);
+        var client = new HttpClient(handler);
+        var conn = new Connection("http://canvas.com", "1234", client: client);
+
+        // Act
+        conn.UpdateLogger(logger);
+
+        // Assert
+        conn.Logger.ShouldNotBeNull();
     }
 
     [Fact]

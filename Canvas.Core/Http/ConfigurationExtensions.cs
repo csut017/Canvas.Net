@@ -1,6 +1,4 @@
-﻿using Serilog;
-
-namespace Canvas.Core.Http;
+﻿namespace Canvas.Core.Http;
 
 /// <summary>
 /// Extensions for configuring HTTP connections.
@@ -14,14 +12,12 @@ public static class ConfigurationExtensions
         /// </summary>
         /// <param name="url">The URL to the Canvas server.</param>
         /// <param name="token">The default user token to use.</param>
-        /// <param name="logger">An optional <see cref="ILogger"/> to use for any logging.</param>
         /// <returns>The <see href="ClientConfiguration"/> instance.</returns>
         public ClientConfiguration ViaHttp(
             string url,
-            string token,
-            ILogger? logger = null)
+            string token)
         {
-            var conn = new Connection(url, token, logger);
+            var conn = new Connection(url, token);
             config.Connection = conn;
             return config;
         }

@@ -24,6 +24,7 @@ public class ClientConfiguration
     public IClient Build()
     {
         if (Connection == null) throw new ConfigurationException("Connection must be initialised.");
+        if (Logger != null && Connection is ILoggingConnection loggingConnection) loggingConnection.UpdateLogger(Logger);
 
         Logger?.Information("Building client");
         return new Client(Connection, Logger);
@@ -36,7 +37,7 @@ public class ClientConfiguration
     /// <returns>The <see cref="ClientConfiguration"/> instance.</returns>
     public ClientConfiguration UseLogger(ILogger logger)
     {
-        this.Logger = logger;
+        Logger = logger;
         return this;
     }
 }
