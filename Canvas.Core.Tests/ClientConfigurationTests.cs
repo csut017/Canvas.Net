@@ -4,6 +4,8 @@ using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using FakeItEasy;
+using Serilog;
 
 namespace Canvas.Core.Tests;
 
@@ -27,14 +29,31 @@ public class ClientConfigurationTests
     public void BuildGeneratesClient()
     {
         // Arrange
-        var config = new ClientConfiguration();
-        config.Connection.Connect(new FakeConnection());
+        var config = new ClientConfiguration
+        {
+            Connection = new FakeConnection()
+        };
 
         // Act
         var client = config.Build();
 
         // Assert
         client.ShouldBeOfType<Client>();
+    }
+
+    [Fact]
+    public void UseLoggerSetsTheLogger()
+    {
+        // Arrange
+        var config = new ClientConfiguration();
+        var logger = A.Fake<ILogger>();
+
+        // Act
+        var result = config.UseLogger(logger);
+
+        // Assert
+        result.ShouldBeSameAs(config);
+        result.Logger.ShouldBeSameAs(logger);
     }
 
     public class FakeConnection

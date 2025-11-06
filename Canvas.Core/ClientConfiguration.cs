@@ -1,4 +1,4 @@
-﻿using Canvas.Core.Internal;
+﻿using Serilog;
 
 namespace Canvas.Core;
 
@@ -7,20 +7,15 @@ namespace Canvas.Core;
 /// </summary>
 public class ClientConfiguration
 {
-    private readonly ClientConnectionConfiguration _connectionConfiguration;
+    /// <summary>
+    /// The <see cref="IConnection"/> instance to use.
+    /// </summary>
+    public IConnection? Connection { get; set; }
 
     /// <summary>
-    /// Initialise a new <see cref="ClientConfiguration"/> instance.
+    /// The <see cref="ILogger"/> instance to use.
     /// </summary>
-    public ClientConfiguration()
-    {
-        _connectionConfiguration = new ClientConnectionConfiguration(this);
-    }
-
-    /// <summary>
-    /// The underlying connection to use.
-    /// </summary>
-    public IClientConnectionConfiguration Connection => _connectionConfiguration;
+    public ILogger? Logger { get; set; }
 
     /// <summary>
     /// Builds an <see cref="IClient"/> instance from the configuration settings.
@@ -28,8 +23,20 @@ public class ClientConfiguration
     /// <returns>A new <see cref="IClient"/> instance.</returns>
     public IClient Build()
     {
-        if (_connectionConfiguration.Connection == null) throw new ConfigurationException("Connection must be initialised.");
+        if (Connection == null) throw new ConfigurationException("Connection must be initialised.");
 
-        return new Client();
+        Logger?.Information("Building client");
+        return new Client(Connection, Logger);
+    }
+
+    /// <summary>
+    /// Specifies the logger to use.
+    /// </summary>
+    /// <param name="logger">A <see cref="ILogger"/> instance.</param>
+    /// <returns>The <see cref="ClientConfiguration"/> instance.</returns>
+    public ClientConfiguration UseLogger(ILogger logger)
+    {
+        this.Logger = logger;
+        return this;
     }
 }
