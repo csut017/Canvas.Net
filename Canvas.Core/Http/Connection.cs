@@ -10,7 +10,7 @@ namespace Canvas.Core.Http;
 /// <summary>
 /// A <see cref="IConnection"/> instance that connects to a Canvas server using HTTP.
 /// </summary>
-internal class Connection
+public class Connection
     : IConnection
 {
     private readonly HttpClient _client;
