@@ -1,4 +1,6 @@
-﻿namespace Canvas.Core;
+﻿using Canvas.Core.Clients;
+
+namespace Canvas.Core;
 
 /// <summary>
 /// Internal implementation of <see cref="IClient"/>.
@@ -9,10 +11,10 @@ internal class Client
     /// <summary>
     /// The interface for working with courses.
     /// </summary>
-    public ICourseClient Courses => throw new NotImplementedException();
+    public ICourse Courses => throw new NotImplementedException();
 
     /// <summary>
     /// The interface for working with the current user.
     /// </summary>
-    public ICurrentUserClient CurrentUser => throw new NotImplementedException();
+    public ICurrentUser CurrentUser => throw new NotImplementedException();
 }

@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using CommunityToolkit.Diagnostics;
 using Serilog;
@@ -14,7 +15,11 @@ internal class Connection
 {
     private readonly HttpClient _client;
     private readonly ILogger? _logger;
-    private readonly JsonSerializerOptions _serializerOptions = new() { };
+
+    private readonly JsonSerializerOptions _serializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     /// <summary>
     /// Initialize a new <see cref="Connection"/> instance using a URL and token.
@@ -43,7 +48,7 @@ internal class Connection
         if (string.IsNullOrEmpty(parts[length])) length--;
         if (string.Equals(parts[length], "v1", StringComparison.InvariantCultureIgnoreCase)) length--;
         if (string.Equals(parts[length], "api", StringComparison.InvariantCultureIgnoreCase)) length--;
-        url = string.Join("/", parts.Take(length + 1));
+        url = string.Join("/", parts.Take(length + 1)) + "/";
 
         logger?.Debug("Setting connection base address to {url}", url);
         BaseAddress = url;
@@ -69,7 +74,8 @@ internal class Connection
     {
         var uri = EnsureAbsoluteUri(url);
         _logger?.Debug("Sending GET to {url}", uri);
-        var response = await _client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
+        var response = await _client
+            .GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         _logger?.Debug("Received {status} from {url} - GET", response.StatusCode, url);
         if (throwExceptionOnFailure && !response.IsSuccessStatusCode) throw ConnectionException.New(url, response);
         return response;
@@ -88,24 +94,22 @@ internal class Connection
         string url,
         Parameters parameters,
         ListSettings? settings = null,
-        CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        settings ??= new();
+        settings ??= new ListSettings();
         var pageNumber = 0;
         var fullUrl = url + parameters;
         _logger?.Debug("Listing {type} entities from {url}", typeof(TItem).Name, fullUrl);
         var cancel = false;
-        var count = 0;
         while (!cancel && !string.IsNullOrEmpty(fullUrl) && pageNumber++ < settings.MaxPages)
         {
-            var response = await Get(fullUrl);
-            var stream = await response.Content.ReadAsStreamAsync();
+            var response = await Get(fullUrl, cancellationToken: cancellationToken);
+            var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             await foreach (var item in JsonSerializer
-                .DeserializeAsyncEnumerable<TItem>(stream, _serializerOptions))
+                .DeserializeAsyncEnumerable<TItem>(stream, _serializerOptions, cancellationToken))
             {
                 if (item == null) continue;
                 yield return item;
-                count++;
             }
 
             fullUrl = GetNextLink(response.Headers);
@@ -129,7 +133,7 @@ internal class Connection
         var uri = EnsureAbsoluteUri(url);
         _logger?.Debug("Sending POST to {url}", uri);
         var response = await _client.PostAsync(uri,
-            new FormUrlEncodedContent(formValues));
+            new FormUrlEncodedContent(formValues), cancellationToken);
         _logger?.Debug("Received {status} from {url} - POST", response.StatusCode, url);
         if (throwExceptionOnFailure && !response.IsSuccessStatusCode) throw ConnectionException.New(url, response);
         return response;
@@ -168,7 +172,7 @@ internal class Connection
         content.Add(streamContent, streamName, Path.GetFileName(fileName));
         var uri = EnsureAbsoluteUri(url);
         _logger?.Debug("Sending GET to {url}", uri);
-        var response = await _client.PostAsync(uri, content);
+        var response = await _client.PostAsync(uri, content, cancellationToken);
         _logger?.Debug("Received {status} from {url} - POST", response.StatusCode, url);
         if (throwExceptionOnFailure && !response.IsSuccessStatusCode) throw ConnectionException.New(url, response);
         return response;
@@ -188,9 +192,9 @@ internal class Connection
         bool throwExceptionOnFailure = true,
         CancellationToken cancellationToken = default) where TItem : class
     {
-        var response = await Post(url, formValues, throwExceptionOnFailure);
-        var json = await response.Content.ReadAsStreamAsync();
-        var item = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions);
+        var response = await Post(url, formValues, throwExceptionOnFailure, cancellationToken);
+        var json = await response.Content.ReadAsStreamAsync(cancellationToken);
+        var item = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions, cancellationToken);
         return item;
     }
 
@@ -210,8 +214,10 @@ internal class Connection
     {
         var uri = EnsureAbsoluteUri(url);
         _logger?.Debug("Sending PUT to {url}", uri);
-        var response = await _client.PutAsync(uri,
-            new FormUrlEncodedContent(formValues));
+        var response = await _client.PutAsync(
+            uri,
+            new FormUrlEncodedContent(formValues),
+            cancellationToken);
         _logger?.Debug("Received {status} from {url} - PUT", response.StatusCode, url);
         if (throwExceptionOnFailure && !response.IsSuccessStatusCode) throw ConnectionException.New(url, response);
         return response;
@@ -229,9 +235,9 @@ internal class Connection
         IDictionary<string, string> formValues,
         CancellationToken cancellationToken = default) where TItem : class
     {
-        var response = await Put(url, formValues);
-        var json = await response.Content.ReadAsStreamAsync();
-        var item = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions);
+        var response = await Put(url, formValues, cancellationToken: cancellationToken);
+        var json = await response.Content.ReadAsStreamAsync(cancellationToken);
+        var item = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions, cancellationToken);
         return item;
     }
 
@@ -251,10 +257,10 @@ internal class Connection
     {
         var fullUrl = url + parameters;
         _logger?.Debug("Retrieving {type} entity from {url}", typeof(TItem).Name, fullUrl);
-        var response = await Get(fullUrl, false);
+        var response = await Get(fullUrl, false, cancellationToken);
         if (!response.IsSuccessStatusCode) return null;
-        var json = await response.Content.ReadAsStreamAsync();
-        var item = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions);
+        var json = await response.Content.ReadAsStreamAsync(cancellationToken);
+        var item = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions, cancellationToken);
         return item;
     }
 
@@ -277,14 +283,14 @@ internal class Connection
     {
         // Uploading files is a three-stage process: see https://canvas.instructure.com/doc/api/file.file_uploads.html
         // Step 1: start upload process
-        var response = await Post(url, formValues);
-        var uploadJson = await response.Content.ReadAsStreamAsync();
-        var uploadToken = await JsonSerializer.DeserializeAsync<FileUploadToken>(uploadJson, _serializerOptions);
+        var response = await Post(url, formValues, cancellationToken: cancellationToken);
+        var uploadJson = await response.Content.ReadAsStreamAsync(cancellationToken);
+        var uploadToken = await JsonSerializer.DeserializeAsync<FileUploadToken>(uploadJson, _serializerOptions, cancellationToken);
         if (string.IsNullOrEmpty(uploadToken?.Url)) throw new ConnectionException(url, "Upload failed: invalid JSON token received");
 
         // Step 2: upload the file data
         _logger?.Debug("Sending data to {url}", uploadToken.Url);
-        response = await Post(uploadToken.Url, stream, fileName, fileName, uploadToken.Parameters, false);
+        response = await Post(uploadToken.Url, stream, fileName, fileName, uploadToken.Parameters, false, cancellationToken);
         if ((int)response.StatusCode < 200 || (int)response.StatusCode > 399) throw ConnectionException.New(uploadToken.Url, response);
 
         // Step 3: retrieve file details
@@ -293,19 +299,19 @@ internal class Connection
         {
             // Details were directly returned
             _logger?.Debug("Received {status} - parsing response", response.StatusCode);
-            var json = await response.Content.ReadAsStreamAsync();
-            newFile = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions);
-            if (newFile == null) throw new ConnectionException(uploadToken.Url, "Upload failed: invalid final JSON received");
-            return newFile;
+            var json = await response.Content.ReadAsStreamAsync(cancellationToken);
+            newFile = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions, cancellationToken);
+            return newFile
+                ?? throw new ConnectionException(uploadToken.Url, "Upload failed: invalid final JSON received");
         }
 
         // Need to follow the redirect first
         var location = response.Headers.Location
             ?? throw new ConnectionException(uploadToken.Url, "Upload failed: no redirect location received");
         _logger?.Debug("Received {status} - getting {url}", response.StatusCode, location);
-        newFile = await Retrieve<TItem>(location.ToString(), []);
-        if (newFile == null) throw new ConnectionException(location.ToString(), "Upload failed: invalid final JSON received");
-        return newFile;
+        newFile = await Retrieve<TItem>(location.ToString(), [], cancellationToken);
+        return newFile
+            ?? throw new ConnectionException(location.ToString(), "Upload failed: invalid final JSON received");
     }
 
     /// <summary>

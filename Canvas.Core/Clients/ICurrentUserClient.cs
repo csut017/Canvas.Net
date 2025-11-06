@@ -1,11 +1,11 @@
 ﻿using Canvas.Core.Entities;
 
-namespace Canvas.Core;
+namespace Canvas.Core.Clients;
 
 /// <summary>
 /// Provides operations for the current user.
 /// </summary>
-public interface ICurrentUserClient
+public interface ICurrentUser
 {
     /// <summary>
     /// Retrieves the details of the current user.

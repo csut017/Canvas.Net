@@ -10,7 +10,7 @@ namespace Canvas.Core.Entities;
 /// with entities based on their identifier.
 /// </remarks>
 [DebuggerDisplay($"{{{nameof(Id)}}}")]
-public record EntityWithId
+public abstract record EntityWithId
     : IEntityWithId
 {
     /// <summary>

@@ -1,8 +1,8 @@
-﻿namespace Canvas.Core;
+﻿namespace Canvas.Core.Clients;
 
 /// <summary>
 /// Provides access to course-related functionality.
 /// </summary>
-public interface ICourseClient
+public interface ICourse
 {
 }

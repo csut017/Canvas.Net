@@ -1,4 +1,6 @@
-﻿namespace Canvas.Core;
+﻿using Canvas.Core.Clients;
+
+namespace Canvas.Core;
 
 /// <summary>
 /// The main interface for connecting to a Canvas installation.
@@ -8,10 +10,10 @@ public interface IClient
     /// <summary>
     /// The interface for working with courses.
     /// </summary>
-    ICourseClient Courses { get; }
+    ICourse Courses { get; }
 
     /// <summary>
     /// The interface for working with the current user.
     /// </summary>
-    ICurrentUserClient CurrentUser { get; }
+    ICurrentUser CurrentUser { get; }
 }
