@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="Canvas.Core.Tests/Canvas.Core.Tests.csproj" />
   <Project Path="Canvas.Core/Canvas.Core.csproj" />
+  <Project Path="QuickTest/QuickTest.csproj" Id="76c9b64a-75f7-4cb0-8965-ddd539855d35" />
 </Solution>
