@@ -61,6 +61,15 @@ public class Connection
     public ILogger? Logger { get; private set; }
 
     /// <summary>
+    /// Helper function for intialising the stream from a response.
+    /// </summary>
+    /// <remarks>
+    /// This function allows for intercepting the content if needed.
+    /// </remarks>
+    internal Func<Connection, HttpResponseMessage, CancellationToken, Task<Stream>> InitialiseResponseStream { get; set; } =
+        (_, resp, cancellationToken) => resp.Content.ReadAsStreamAsync(cancellationToken);
+
+    /// <summary>
     /// Performs a GET operation.
     /// </summary>
     /// <param name="url">The URL to call with the GET operation.</param>
@@ -102,7 +111,7 @@ public class Connection
         while (!cancel && !string.IsNullOrEmpty(fullUrl) && pageNumber++ < settings.MaxPages)
         {
             var response = await Get(fullUrl, cancellationToken: cancellationToken);
-            var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            var stream = await InitialiseResponseStream(this, response, cancellationToken);
             await foreach (var item in JsonSerializer
                 .DeserializeAsyncEnumerable<TItem>(stream, _serializerOptions, cancellationToken))
             {
@@ -191,7 +200,7 @@ public class Connection
         CancellationToken cancellationToken = default) where TItem : class
     {
         var response = await Post(url, formValues, throwExceptionOnFailure, cancellationToken);
-        var json = await response.Content.ReadAsStreamAsync(cancellationToken);
+        var json = await InitialiseResponseStream(this, response, cancellationToken);
         var item = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions, cancellationToken);
         return item;
     }
@@ -234,7 +243,7 @@ public class Connection
         CancellationToken cancellationToken = default) where TItem : class
     {
         var response = await Put(url, formValues, cancellationToken: cancellationToken);
-        var json = await response.Content.ReadAsStreamAsync(cancellationToken);
+        var json = await InitialiseResponseStream(this, response, cancellationToken);
         var item = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions, cancellationToken);
         return item;
     }
@@ -257,7 +266,7 @@ public class Connection
         Logger?.Debug("Retrieving {type} entity from {url}", typeof(TItem).Name, fullUrl);
         var response = await Get(fullUrl, false, cancellationToken);
         if (!response.IsSuccessStatusCode) return null;
-        var json = await response.Content.ReadAsStreamAsync(cancellationToken);
+        var json = await InitialiseResponseStream(this, response, cancellationToken);
         var item = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions, cancellationToken);
         return item;
     }
@@ -291,7 +300,7 @@ public class Connection
         // Uploading files is a three-stage process: see https://canvas.instructure.com/doc/api/file.file_uploads.html
         // Step 1: start upload process
         var response = await Post(url, formValues, cancellationToken: cancellationToken);
-        var uploadJson = await response.Content.ReadAsStreamAsync(cancellationToken);
+        var uploadJson = await InitialiseResponseStream(this, response, cancellationToken);
         var uploadToken = await JsonSerializer.DeserializeAsync<FileUploadToken>(uploadJson, _serializerOptions, cancellationToken);
         if (string.IsNullOrEmpty(uploadToken?.Url)) throw new ConnectionException(url, "Upload failed: invalid JSON token received");
 
@@ -306,7 +315,7 @@ public class Connection
         {
             // Details were directly returned
             Logger?.Debug("Received {status} - parsing response", response.StatusCode);
-            var json = await response.Content.ReadAsStreamAsync(cancellationToken);
+            var json = await InitialiseResponseStream(this, response, cancellationToken);
             newFile = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions, cancellationToken);
             return newFile
                 ?? throw new ConnectionException(uploadToken.Url, "Upload failed: invalid final JSON received");
