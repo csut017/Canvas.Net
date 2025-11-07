@@ -41,6 +41,18 @@ public record User
     public string? NameSortable { get; init; }
 
     /// <summary>
+    /// The user's first name.
+    /// </summary>
+    [JsonPropertyName("first_name")]
+    public string? NamePersonal { get; init; }
+
+    /// <summary>
+    /// The user's family name.
+    /// </summary>
+    [JsonPropertyName("last_name")]
+    public string? NameFamily { get; init; }
+
+    /// <summary>
     /// The user's login ID.
     /// </summary>
     [JsonPropertyName("login_id")]

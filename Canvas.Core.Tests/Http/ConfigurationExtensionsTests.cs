@@ -48,6 +48,39 @@ public class ConfigurationExtensionsTests
     }
 
     [Fact]
+    public async Task LogIncomingContentIgnoresBinary()
+    {
+        // Arrange
+        var message = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("Data", MediaTypeHeaderValue.Parse("application/octet-stream")),
+        };
+        var logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.InMemory()
+            .CreateLogger();
+        var conn = new Connection("test", "test");
+        conn.UpdateLogger(logger);
+
+        // Act
+        var stream = await ConfigurationExtensions.LogIncomingContent(
+            conn,
+            message,
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        InMemorySink.Instance
+            .Should()
+            .HaveMessage("Received non-JSON data")
+            .Appearing()
+            .Once()
+            .WithLevel(LogEventLevel.Debug);
+        using var reader = new StreamReader(stream);
+        var content = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
+        content.ShouldBe("Data");
+    }
+
+    [Fact]
     public void ViaHttpSetsConnection()
     {
         // Arrange

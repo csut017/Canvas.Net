@@ -51,6 +51,12 @@ public static class ConfigurationExtensions
     public static async Task<Stream> LogIncomingContent(Connection conn, HttpResponseMessage resp,
         CancellationToken cancellationToken)
     {
+        if (!string.Equals("application/json", resp.Content.Headers.ContentType?.MediaType))
+        {
+            conn.Logger?.Debug("Received non-JSON data");
+            return await resp.Content.ReadAsStreamAsync(cancellationToken);
+        }
+
         var stream = new MemoryStream();
         await resp.Content.CopyToAsync(stream, cancellationToken);
         stream.Seek(0, SeekOrigin.Begin);

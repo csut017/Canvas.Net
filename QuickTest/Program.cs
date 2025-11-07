@@ -1,19 +1,19 @@
 ﻿using Canvas.Core;
 using Canvas.Core.Http;
-using Canvas.Core.Settings;
 using QuickTest;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.Console()
+    .CreateLogger();
 
 var settings = AppSettings.New<Program>("appsettings.json");
 
-Console.WriteLine($"Canvas URL is {settings.CanvasUrl}");
+Log.Information("Canvas URL is {url}", settings.CanvasUrl);
 var client = new ClientConfiguration()
-    .ViaHttp(settings.CanvasUrl, settings.CanvasToken)
+    .ViaHttpWithResponseLogging(settings.CanvasUrl, settings.CanvasToken)
+    .UseLogger(Log.Logger)
     .Build();
 var user = await client.CurrentUser.Retrieve();
-Console.WriteLine($"Current user is {user?.Name}");
-
-var count = 0;
-await foreach (var course in client.Courses.ListForCurrentUser(new CourseList { PageSize = List.MaxPageSize }))
-{
-    Console.WriteLine($"Course #{++count}: {course.Name} [{course.Term?.Name}]");
-}
+Log.Information("Current user is {user}", user);
