@@ -34,9 +34,15 @@ internal class TermsClient
     /// <param name="opts">The options for performing the list.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{Term}"/> containing the terms for the account.</returns>
-    public Task<IQueryable<Term>> ListForAccount(ulong accountId, List? opts = null, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<Term> ListForAccount(ulong accountId, List? opts = null, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        opts ??= new();
+
+        _logger?.Debug("Listing terms for account {id}", accountId);
+        return _connection.List<Term>(
+            $"/api/v1/accounts/{accountId}/terms",
+            opts,
+            cancellationToken);
     }
 
     /// <summary>
@@ -46,9 +52,9 @@ internal class TermsClient
     /// <param name="opts">The options for performing the list.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{Term}"/> containing the terms for the account.</returns>
-    public Task<IQueryable<Term>> ListForAccount(Account account, List? opts = null, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<Term> ListForAccount(Account account, List? opts = null, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return ListForAccount(account.Id, opts, cancellationToken);
     }
 
     /// <summary>

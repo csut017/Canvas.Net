@@ -3,6 +3,7 @@ using Canvas.Core.Entities;
 using Canvas.Core.Settings;
 using CommunityToolkit.Diagnostics;
 using Serilog;
+using Serilog.Core;
 
 namespace Canvas.Core.Implementations;
 
@@ -15,6 +16,8 @@ internal class AccountsClient
     private readonly IConnection _connection;
     private readonly ILogger? _logger;
 
+    private readonly Lazy<ITerms> _termsClient;
+
     /// <summary>
     /// Initialises a new <see cref="ICurrentUser"/> instance.
     /// </summary>
@@ -25,12 +28,15 @@ internal class AccountsClient
         Guard.IsNotNull(connection);
         _connection = connection;
         _logger = logger?.ForContext<CurrentUserClient>();
+
+        // Initialize the underlying clients
+        _termsClient = new Lazy<ITerms>(() => new TermsClient(connection, _logger));
     }
 
     /// <summary>
     /// Gets the terms interface.
     /// </summary>
-    public ITerms Terms => throw new NotImplementedException();
+    public ITerms Terms => _termsClient.Value;
 
     /// <summary>
     /// Lists all the accounts for the current user.
@@ -40,7 +46,13 @@ internal class AccountsClient
     /// <returns>An <see cref="IQueryable{Account}"/> containing the accounts for the current user.</returns>
     public IAsyncEnumerable<Account> ListForCurrentUser(List? opts = null, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        opts ??= new();
+
+        _logger?.Debug("Listing accounts for current user");
+        return _connection.List<Account>(
+            "/api/v1/accounts",
+            opts,
+            cancellationToken);
     }
 
     /// <summary>
