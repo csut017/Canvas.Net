@@ -6,6 +6,16 @@
 public record SubmissionSummary
 {
     /// <summary>
+    /// The identifier of the course.
+    /// </summary>
+    public ulong CourseId { get; init; }
+
+    /// <summary>
+    /// The identifier of the assignment.
+    /// </summary>
+    public ulong AssignmentId { get; init; }
+
+    /// <summary>
     /// The number of graded assignments.
     /// </summary>
     public int Graded { get; init; }

@@ -1,13 +1,32 @@
-﻿using Canvas.Core.Entities;
+﻿using Canvas.Core.Clients;
+using Canvas.Core.Entities;
 using Canvas.Core.Settings;
+using CommunityToolkit.Diagnostics;
+using Serilog;
 
-namespace Canvas.Core.Clients;
+namespace Canvas.Core.Implementations;
 
 /// <summary>
-/// Provides access to the assignments-related functionality for courses.
+/// Default implementation of <see cref="IAssignments"/>.
 /// </summary>
-public interface IAssignments
+internal class AssignmentsClient
+    : IAssignments
 {
+    private readonly IConnection _connection;
+    private readonly ILogger? _logger;
+
+    /// <summary>
+    /// Initialises a new <see cref="ICurrentUser"/> instance.
+    /// </summary>
+    /// <param name="connection">The underlying connection.</param>
+    /// <param name="logger">An optional logger.</param>
+    public AssignmentsClient(IConnection connection, ILogger? logger = null)
+    {
+        Guard.IsNotNull(connection);
+        _connection = connection;
+        _logger = logger?.ForContext<AssignmentsClient>();
+    }
+
     /// <summary>
     /// Adds an assignment override for a section in an assignment.
     /// </summary>
@@ -19,7 +38,11 @@ public interface IAssignments
     /// <param name="whenLock">When the assignment is locked for the section.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A new <see cref="AssignmentDate"/> containing the results of the add operation.</returns>
-    Task<AssignmentDate> AddAssignmentOverrideForSection(ulong courseId, ulong assignmentId, ulong sectionId, DateTime? whenDue, DateTime? whenUnlock, DateTime? whenLock, CancellationToken cancellationToken = default);
+    public Task<AssignmentDate> AddAssignmentOverrideForSection(ulong courseId, ulong assignmentId, ulong sectionId, DateTime? whenDue,
+        DateTime? whenUnlock, DateTime? whenLock, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Marks a submission for an assignment.
@@ -31,7 +54,11 @@ public interface IAssignments
     /// <param name="file">An optional file to associate with the comment.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="Submission"/> instance containing the result from Canvas.</returns>
-    Task<Submission> AddComment(ulong courseId, ulong assignmentId, ulong studentId, string comment, FileUpload? file, CancellationToken cancellationToken = default);
+    public Task<Submission> AddComment(ulong courseId, ulong assignmentId, ulong studentId, string comment, FileUpload? file,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Marks a submission for an assignment.
@@ -43,7 +70,11 @@ public interface IAssignments
     /// <param name="file">An optional file to associate with the comment.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="Submission"/> instance containing the result from Canvas.</returns>
-    Task<Submission> AddComment(Course course, Assignment assignment, User student, string comment, FileUpload? file, CancellationToken cancellationToken = default);
+    public Task<Submission> AddComment(Course course, Assignment assignment, User student, string comment, FileUpload? file,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Creates a new assignment.
@@ -52,7 +83,10 @@ public interface IAssignments
     /// <param name="assignment">The assignment details.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A new <see cref="Assignment"/> instance.</returns>
-    Task<Assignment> Create(Course course, Assignment assignment, CancellationToken cancellationToken = default);
+    public Task<Assignment> Create(Course course, Assignment assignment, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Creates a new assignment.
@@ -61,7 +95,10 @@ public interface IAssignments
     /// <param name="assignment">The assignment details.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A new <see cref="Assignment"/> instance.</returns>
-    Task<Assignment> Create(ulong courseId, Assignment assignment, CancellationToken cancellationToken = default);
+    public Task<Assignment> Create(ulong courseId, Assignment assignment, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Downloads the contents of a submission.
@@ -69,7 +106,10 @@ public interface IAssignments
     /// <param name="submission">The <see cref="SubmissionFile"/> to download.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A string containing the contents of the submission.</returns>
-    Task<string> DownloadSubmission(SubmissionFile submission, CancellationToken cancellationToken = default);
+    public Task<string> DownloadSubmission(SubmissionFile submission, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Downloads the contents of a submission.
@@ -77,7 +117,10 @@ public interface IAssignments
     /// <param name="submission">The <see cref="SubmissionFile"/> to download.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <param name="stream">The <see cref="Stream"/> to save the contents to.</param>
-    Task DownloadSubmission(SubmissionFile submission, Stream stream, CancellationToken cancellationToken = default);
+    public Task DownloadSubmission(SubmissionFile submission, Stream stream, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Downloads a submission to a file path.
@@ -85,7 +128,10 @@ public interface IAssignments
     /// <param name="submission">The <see cref="SubmissionFile"/> to download.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <param name="path">The path to download the file to.</param>
-    Task DownloadSubmissionTo(SubmissionFile submission, string path, CancellationToken cancellationToken = default);
+    public Task DownloadSubmissionTo(SubmissionFile submission, string path, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Lists the assignments for a course.
@@ -94,7 +140,11 @@ public interface IAssignments
     /// <param name="opts">The list options.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{Assignment}"/> containing the assignments for the course.</returns>
-    IAsyncEnumerable<Assignment> ListForCourse(ulong courseId, AssignmentList? opts = null, CancellationToken cancellationToken = default);
+    public IAsyncEnumerable<Assignment> ListForCourse(ulong courseId, AssignmentList? opts = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Lists the assignments for a course.
@@ -103,7 +153,11 @@ public interface IAssignments
     /// <param name="opts">The list options.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{Assignment}"/> containing the assignments for the course.</returns>
-    IAsyncEnumerable<Assignment> ListForCourse(Course course, AssignmentList? opts = null, CancellationToken cancellationToken = default);
+    public IAsyncEnumerable<Assignment> ListForCourse(Course course, AssignmentList? opts = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Lists the override dates for an assignment in a course.
@@ -113,7 +167,11 @@ public interface IAssignments
     /// <param name="opts">The list options.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{AssignmentDate}"/> containing the override dates for an assignment.</returns>
-    IAsyncEnumerable<AssignmentDate> ListOverrideDates(Course course, Assignment assignment, List? opts = null, CancellationToken cancellationToken = default);
+    public IAsyncEnumerable<AssignmentDate> ListOverrideDates(Course course, Assignment assignment, List? opts = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Lists the override dates for an assignment in a course.
@@ -123,7 +181,11 @@ public interface IAssignments
     /// <param name="opts">The list options.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{AssignmentDate}"/> containing the override dates for an assignment.</returns>
-    IAsyncEnumerable<AssignmentDate> ListOverrideDates(ulong courseId, ulong assignmentId, List? opts = null, CancellationToken cancellationToken = default);
+    public IAsyncEnumerable<AssignmentDate> ListOverrideDates(ulong courseId, ulong assignmentId, List? opts = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Lists the peer reviews for an assignment in a course.
@@ -133,7 +195,11 @@ public interface IAssignments
     /// <param name="opts">The list options.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{PeerReview}"/> containing the peer reviews for an assignment.</returns>
-    IAsyncEnumerable<PeerReview> ListPeerReviews(ulong courseId, ulong assignmentId, List? opts = null, CancellationToken cancellationToken = default);
+    public IAsyncEnumerable<PeerReview> ListPeerReviews(ulong courseId, ulong assignmentId, List? opts = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Lists the peer reviews for an assignment in a course.
@@ -143,7 +209,11 @@ public interface IAssignments
     /// <param name="opts">The list options.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{PeerReview}"/> containing the peer reviews for an assignment.</returns>
-    IAsyncEnumerable<PeerReview> ListPeerReviews(Course course, Assignment assignment, List? opts = null, CancellationToken cancellationToken = default);
+    public IAsyncEnumerable<PeerReview> ListPeerReviews(Course course, Assignment assignment, List? opts = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Lists the submissions for an assignment in a course.
@@ -153,7 +223,11 @@ public interface IAssignments
     /// <param name="opts">The list options.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{Submission}"/> containing the submissions for an assignment.</returns>
-    IAsyncEnumerable<Submission> ListSubmissions(ulong courseId, ulong assignmentId, SubmissionList? opts = null, CancellationToken cancellationToken = default);
+    public IAsyncEnumerable<Submission> ListSubmissions(ulong courseId, ulong assignmentId, SubmissionList? opts = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Lists the submissions for an assignment in a course.
@@ -163,7 +237,11 @@ public interface IAssignments
     /// <param name="opts">The list options.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{Submission}"/> containing the submissions for an assignment.</returns>
-    IAsyncEnumerable<Submission> ListSubmissions(Course course, Assignment assignment, SubmissionList? opts = null, CancellationToken cancellationToken = default);
+    public IAsyncEnumerable<Submission> ListSubmissions(Course course, Assignment assignment, SubmissionList? opts = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Marks a submission for an assignment.
@@ -176,7 +254,11 @@ public interface IAssignments
     /// <param name="rubric">An optional marked rubric.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="Submission"/> instance containing the result from Canvas.</returns>
-    Task<Submission> MarkSubmission(ulong courseId, ulong assignmentId, ulong studentId, double? mark, string? comment, SubmissionRubric? rubric = null, CancellationToken cancellationToken = default);
+    public Task<Submission> MarkSubmission(ulong courseId, ulong assignmentId, ulong studentId, double? mark, string? comment,
+        SubmissionRubric? rubric = null, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Marks a submission for an assignment.
@@ -189,7 +271,11 @@ public interface IAssignments
     /// <param name="rubric">An optional marked rubric.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="Submission"/> instance containing the result from Canvas.</returns>
-    Task<Submission> MarkSubmission(Course course, Assignment assignment, ulong studentId, double? mark, string? comment, SubmissionRubric? rubric = null, CancellationToken cancellationToken = default);
+    public Task<Submission> MarkSubmission(Course course, Assignment assignment, ulong studentId, double? mark, string? comment,
+        SubmissionRubric? rubric = null, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Marks a submission for an assignment.
@@ -202,7 +288,11 @@ public interface IAssignments
     /// <param name="rubric">An optional marked rubric.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="Submission"/> instance containing the result from Canvas.</returns>
-    Task<Submission> MarkSubmission(Course course, Assignment assignment, User student, double? mark, string? comment, SubmissionRubric? rubric = null, CancellationToken cancellationToken = default);
+    public Task<Submission> MarkSubmission(Course course, Assignment assignment, User student, double? mark, string? comment,
+        SubmissionRubric? rubric = null, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Retrieves the details on an assignment.
@@ -212,7 +302,16 @@ public interface IAssignments
     /// <param name="opts">Any options for retrieving the assignment.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="Course"/> instance if found on Canvas; <c>null</c> otherwise.</returns>
-    Task<Assignment?> Retrieve(ulong courseId, ulong assignmentId, AssignmentItem? opts = null, CancellationToken cancellationToken = default);
+    public Task<Assignment?> Retrieve(ulong courseId, ulong assignmentId, AssignmentItem? opts = null,
+        CancellationToken cancellationToken = default)
+    {
+        opts ??= new AssignmentItem();
+        _logger?.Debug("Retrieving assignment {assignmentId} in course with id {courseId}", assignmentId, courseId);
+        return _connection.Retrieve<Assignment>(
+            $"/api/v1/courses/{courseId}/assignments/{assignmentId}",
+            opts.ToParameters(),
+            cancellationToken);
+    }
 
     /// <summary>
     /// Retrieves the details on an assignment.
@@ -222,7 +321,11 @@ public interface IAssignments
     /// <param name="opts">Any options for retrieving the assignment.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="Assignment"/> instance if found on Canvas; <c>null</c> otherwise.</returns>
-    Task<Assignment?> Retrieve(Course course, Assignment assignment, AssignmentItem? opts = null, CancellationToken cancellationToken = default);
+    public Task<Assignment?> Retrieve(Course course, Assignment assignment, AssignmentItem? opts = null,
+        CancellationToken cancellationToken = default)
+    {
+        return Retrieve(course.Id, assignment.Id, opts, cancellationToken);
+    }
 
     /// <summary>
     /// Retrieves an assignment submission for a single user.
@@ -233,7 +336,16 @@ public interface IAssignments
     /// <param name="opts">Any options for retrieving the submission.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="Submission"/> instance if found, <c>null</c> otherwise.</returns>
-    Task<Submission?> RetrieveSubmission(ulong courseId, ulong assignmentId, ulong userId, SubmissionList? opts = null, CancellationToken cancellationToken = default);
+    public Task<Submission?> RetrieveSubmission(ulong courseId, ulong assignmentId, ulong userId, SubmissionList? opts = null,
+        CancellationToken cancellationToken = default)
+    {
+        opts ??= new();
+        _logger?.Debug("Retrieving submission for assignment {assignmentId} in course with id {courseId} by student {userId}", assignmentId, courseId, userId);
+        return _connection.Retrieve<Submission>(
+            $"/api/v1/courses/{courseId}/assignments/{assignmentId}/submissions/{userId}",
+            opts.ToParameters(),
+            cancellationToken);
+    }
 
     /// <summary>
     /// Retrieves an assignment submission for a single user.
@@ -244,7 +356,11 @@ public interface IAssignments
     /// <param name="opts">Any options for retrieving the submission.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="Submission"/> instance if found, <c>null</c> otherwise.</returns>
-    Task<Submission?> RetrieveSubmission(Course course, Assignment assignment, User user, SubmissionList? opts = null, CancellationToken cancellationToken = default);
+    public Task<Submission?> RetrieveSubmission(Course course, Assignment assignment, User user, SubmissionList? opts = null,
+        CancellationToken cancellationToken = default)
+    {
+        return RetrieveSubmission(course.Id, assignment.Id, user.Id, opts, cancellationToken);
+    }
 
     /// <summary>
     /// Lists the submissions for an assignment in a course.
@@ -253,7 +369,10 @@ public interface IAssignments
     /// <param name="assignment">A <see cref="Assignment"/> instance.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{Submission}"/> containing the submissions for an assignment.</returns>
-    Task<SubmissionSummary> RetrieveSubmissionSummary(Course course, Assignment assignment, CancellationToken cancellationToken = default);
+    public Task<SubmissionSummary> RetrieveSubmissionSummary(Course course, Assignment assignment, CancellationToken cancellationToken = default)
+    {
+        return RetrieveSubmissionSummary(course.Id, assignment.Id, cancellationToken);
+    }
 
     /// <summary>
     /// Lists the submissions for an assignment in a course.
@@ -262,7 +381,20 @@ public interface IAssignments
     /// <param name="assignmentId">The identifier of the assignment.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{Submission}"/> containing the submissions for an assignment.</returns>
-    Task<SubmissionSummary> RetrieveSubmissionSummary(ulong courseId, ulong assignmentId, CancellationToken cancellationToken = default);
+    public async Task<SubmissionSummary> RetrieveSubmissionSummary(ulong courseId, ulong assignmentId, CancellationToken cancellationToken = default)
+    {
+        _logger?.Debug("Retrieving submission summary for assignment {assignmentId} in course with id {courseId}", assignmentId, courseId);
+        var summary = await _connection.Retrieve<SubmissionSummary>(
+            $"/api/v1/courses/{courseId}/assignments/{assignmentId}/submission_summary",
+            [],
+            cancellationToken);
+        if (summary == null) throw new ClientException("No summary returned from Canvas");
+        return summary with
+        {
+            AssignmentId = assignmentId,
+            CourseId = courseId
+        };
+    }
 
     /// <summary>
     /// Updates an existing assignment.
@@ -272,7 +404,10 @@ public interface IAssignments
     /// <param name="assignment">The assignment details.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A new <see cref="Assignment"/> instance.</returns>
-    Task<Assignment> Update(ulong courseId, ulong assignmentId, Assignment assignment, CancellationToken cancellationToken = default);
+    public Task<Assignment> Update(ulong courseId, ulong assignmentId, Assignment assignment, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Updates an assignment override in an assignment.
@@ -285,7 +420,11 @@ public interface IAssignments
     /// <param name="whenLock">When the assignment is locked for the section.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A new <see cref="AssignmentDate"/> containing the results of the add operation.</returns>
-    Task<AssignmentDate> UpdateAssignmentOverride(ulong courseId, ulong assignmentId, ulong overrideId, DateTime? whenDue, DateTime? whenUnlock, DateTime? whenLock, CancellationToken cancellationToken = default);
+    public Task<AssignmentDate> UpdateAssignmentOverride(ulong courseId, ulong assignmentId, ulong overrideId, DateTime? whenDue,
+        DateTime? whenUnlock, DateTime? whenLock, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Updates the lateness details for a submission for an assignment.
@@ -297,7 +436,11 @@ public interface IAssignments
     /// <param name="lateness">The new value for the number of seconds late.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="Submission"/> instance containing the result from Canvas.</returns>
-    Task<Submission> UpdateSubmissionLateness(ulong courseId, ulong assignmentId, ulong studentId, LatePolicyStatus status, int? lateness = null, CancellationToken cancellationToken = default);
+    public Task<Submission> UpdateSubmissionLateness(ulong courseId, ulong assignmentId, ulong studentId, LatePolicyStatus status,
+        int? lateness = null, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Updates the lateness details for a submission for an assignment.
@@ -309,7 +452,11 @@ public interface IAssignments
     /// <param name="lateness">The new value for the number of seconds late.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="Submission"/> instance containing the result from Canvas.</returns>
-    Task<Submission> UpdateSubmissionLateness(Course course, Assignment assignment, ulong studentId, LatePolicyStatus status, int? lateness = null, CancellationToken cancellationToken = default);
+    public Task<Submission> UpdateSubmissionLateness(Course course, Assignment assignment, ulong studentId, LatePolicyStatus status,
+        int? lateness = null, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Updates the lateness details for a submission for an assignment.
@@ -321,7 +468,11 @@ public interface IAssignments
     /// <param name="lateness">The new value for the number of seconds late.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="Submission"/> instance containing the result from Canvas.</returns>
-    Task<Submission> UpdateSubmissionLateness(Course course, Assignment assignment, User student, LatePolicyStatus status, int? lateness = null, CancellationToken cancellationToken = default);
+    public Task<Submission> UpdateSubmissionLateness(Course course, Assignment assignment, User student, LatePolicyStatus status,
+        int? lateness = null, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Uploads a submission for a student.
@@ -332,7 +483,11 @@ public interface IAssignments
     /// <param name="file">The file to upload.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>The submission details.</returns>
-    Task<Submission> UploadSubmission(ulong courseId, ulong assignmentId, ulong studentId, FileUpload file, CancellationToken cancellationToken = default);
+    public Task<Submission> UploadSubmission(ulong courseId, ulong assignmentId, ulong studentId, FileUpload file,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Uploads a submission for a student.
@@ -343,5 +498,9 @@ public interface IAssignments
     /// <param name="file">The file to upload.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>The submission details.</returns>
-    Task<Submission> UploadSubmission(Course course, Assignment assignment, User student, FileUpload file, CancellationToken cancellationToken = default);
+    public Task<Submission> UploadSubmission(Course course, Assignment assignment, User student, FileUpload file,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 }

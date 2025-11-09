@@ -33,8 +33,9 @@ public record FileUpload
     /// Generates a new <see cref="FileUpload"/> instance from a file path.
     /// </summary>
     /// <param name="info">A <see cref="FileInfo"/> containg the details of the file.</param>
+    /// <param name="type">The type of file.</param>
     /// <returns>The new <see cref="FileUpload"/> instance.</returns>
-    public static FileUpload New(FileInfo info)
+    public static FileUpload New(FileInfo info, string? type = null)
     {
         if (!info.Exists) throw new FileNotFoundException($"File {info.Name} does not exist", info.FullName);
         var value = new FileUpload
@@ -42,6 +43,7 @@ public record FileUpload
             Name = info.Name,
             Stream = info.Open(FileMode.Open),
             Size = info.Length,
+            Type = type,
         };
         return value;
     }
@@ -51,10 +53,10 @@ public record FileUpload
     /// </summary>
     /// <param name="path">The path to the file.</param>
     /// <returns>The new <see cref="FileUpload"/> instance.</returns>
-    public static FileUpload New(string path)
+    public static FileUpload New(string path, string? type = null)
     {
         var info = new FileInfo(path);
-        return New(info);
+        return New(info, type);
     }
 
     /// <summary>

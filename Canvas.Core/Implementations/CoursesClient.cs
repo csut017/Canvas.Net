@@ -12,6 +12,7 @@ namespace Canvas.Core.Implementations;
 internal class CoursesClient
     : ICourses
 {
+    private readonly Lazy<IAssignments> _assignmentsClient;
     private readonly IConnection _connection;
     private readonly ILogger? _logger;
 
@@ -24,8 +25,16 @@ internal class CoursesClient
     {
         Guard.IsNotNull(connection);
         _connection = connection;
-        _logger = logger?.ForContext<CurrentUserClient>();
+        _logger = logger?.ForContext<CoursesClient>();
+
+        // Initialize the underlying clients
+        _assignmentsClient = new Lazy<IAssignments>(() => new AssignmentsClient(connection, _logger));
     }
+
+    /// <summary>
+    /// Gets the Assignments interface.
+    /// </summary>
+    public IAssignments Assignments => _assignmentsClient.Value;
 
     /// <summary>
     /// Lists all the courses for an account.

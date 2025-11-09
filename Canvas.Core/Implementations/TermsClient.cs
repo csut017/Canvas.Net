@@ -24,7 +24,7 @@ internal class TermsClient
     {
         Guard.IsNotNull(connection);
         _connection = connection;
-        _logger = logger?.ForContext<CurrentUserClient>();
+        _logger = logger?.ForContext<TermsClient>();
     }
 
     /// <summary>

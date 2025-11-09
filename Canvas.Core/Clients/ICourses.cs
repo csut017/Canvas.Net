@@ -8,6 +8,11 @@ namespace Canvas.Core.Clients;
 public interface ICourses
 {
     /// <summary>
+    /// Gets the assignments interface.
+    /// </summary>
+    IAssignments Assignments { get; }
+
+    /// <summary>
     /// Lists all the courses for an account.
     /// </summary>
     /// <param name="accountId">The identifier of the account.</param>

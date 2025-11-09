@@ -1,4 +1,5 @@
-﻿using Canvas.Core.Entities;
+﻿using Canvas.Core.Clients;
+using Canvas.Core.Entities;
 using Canvas.Core.Implementations;
 using Canvas.Core.Settings;
 using FakeItEasy;
@@ -12,6 +13,23 @@ namespace Canvas.Core.Tests.Implementations;
 [TestSubject(typeof(CoursesClient))]
 public class CoursesClientTests
 {
+    [Fact]
+    public void AssignmentsReturnsAClient()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        var client = new CoursesClient(conn);
+
+        // Act
+        var child = client.Assignments;
+
+        // Assert
+        child.ShouldSatisfyAllConditions(
+            () => child.ShouldNotBeNull(),
+            () => child.ShouldBeAssignableTo<IAssignments>()
+        );
+    }
+
     [Fact]
     public async Task ListForAccountViaEntityCallsUnderlyingConnection()
     {

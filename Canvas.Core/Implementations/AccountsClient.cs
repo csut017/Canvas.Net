@@ -3,7 +3,6 @@ using Canvas.Core.Entities;
 using Canvas.Core.Settings;
 using CommunityToolkit.Diagnostics;
 using Serilog;
-using Serilog.Core;
 
 namespace Canvas.Core.Implementations;
 
@@ -27,7 +26,7 @@ internal class AccountsClient
     {
         Guard.IsNotNull(connection);
         _connection = connection;
-        _logger = logger?.ForContext<CurrentUserClient>();
+        _logger = logger?.ForContext<AccountsClient>();
 
         // Initialize the underlying clients
         _termsClient = new Lazy<ITerms>(() => new TermsClient(connection, _logger));
