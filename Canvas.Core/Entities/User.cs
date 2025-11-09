@@ -53,6 +53,17 @@ public record User
     public string? NameFamily { get; init; }
 
     /// <summary>
+    /// A URL to the user's avatar image.
+    /// </summary>
+    [JsonPropertyName("avatar_url")]
+    public string? AvatarUrl { get; init; }
+
+    /// <summary>
+    /// The user's locale.
+    /// </summary>
+    public string? Locale { get; init; }
+
+    /// <summary>
     /// The user's login ID.
     /// </summary>
     [JsonPropertyName("login_id")]
