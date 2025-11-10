@@ -8,11 +8,13 @@ public record SubmissionSummary
     /// <summary>
     /// The identifier of the course.
     /// </summary>
+    [JsonIgnore]
     public ulong CourseId { get; init; }
 
     /// <summary>
     /// The identifier of the assignment.
     /// </summary>
+    [JsonIgnore]
     public ulong AssignmentId { get; init; }
 
     /// <summary>

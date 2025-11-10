@@ -1,4 +1,5 @@
-﻿using Canvas.Core.Clients;
+﻿using System.Runtime.CompilerServices;
+using Canvas.Core.Clients;
 using Canvas.Core.Entities;
 using Canvas.Core.Settings;
 using CommunityToolkit.Diagnostics;
@@ -140,16 +141,22 @@ internal class AssignmentsClient
     /// <param name="opts">The list options.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{Assignment}"/> containing the assignments for the course.</returns>
-    public IAsyncEnumerable<Assignment> ListForCourse(ulong courseId, AssignmentList? opts = null,
-        CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<Assignment> ListForCourse(ulong courseId, AssignmentList? opts = null,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         opts ??= new AssignmentList();
 
         _logger?.Debug("Listing assignments for course with id {courseId}", courseId);
-        return _connection.List<Assignment>(
+        await foreach (var item in _connection.List<Assignment>(
             $"/api/v1/courses/{courseId}/assignments",
             opts,
-            cancellationToken);
+            cancellationToken))
+        {
+            yield return item with
+            {
+                CourseId = courseId,
+            };
+        }
     }
 
     /// <summary>
@@ -176,7 +183,7 @@ internal class AssignmentsClient
     public IAsyncEnumerable<AssignmentDate> ListOverrideDates(Course course, Assignment assignment, List? opts = null,
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return ListOverrideDates(course.Id, assignment.Id, opts, cancellationToken);
     }
 
     /// <summary>
@@ -187,10 +194,22 @@ internal class AssignmentsClient
     /// <param name="opts">The list options.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{AssignmentDate}"/> containing the override dates for an assignment.</returns>
-    public IAsyncEnumerable<AssignmentDate> ListOverrideDates(ulong courseId, ulong assignmentId, List? opts = null,
-        CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<AssignmentDate> ListOverrideDates(ulong courseId, ulong assignmentId, List? opts = null,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        opts ??= new List();
+        _logger?.Debug("Listing override dates for assignment {assignmentId} in course with id {courseId}", assignmentId, courseId);
+        await foreach (var item in _connection.List<AssignmentDate>(
+            $"/api/v1/courses/{courseId}/assignments/{assignmentId}/overrides",
+            opts,
+            cancellationToken))
+        {
+            yield return item with
+            {
+                AssignmentId = assignmentId,
+                CourseId = courseId
+            };
+        }
     }
 
     /// <summary>
@@ -201,10 +220,22 @@ internal class AssignmentsClient
     /// <param name="opts">The list options.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{PeerReview}"/> containing the peer reviews for an assignment.</returns>
-    public IAsyncEnumerable<PeerReview> ListPeerReviews(ulong courseId, ulong assignmentId, List? opts = null,
-        CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<PeerReview> ListPeerReviews(ulong courseId, ulong assignmentId, List? opts = null,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        opts ??= new List();
+        _logger?.Debug("Listing peer reviews for assignment {assignmentId} in course with id {courseId}", assignmentId, courseId);
+        await foreach (var item in _connection.List<PeerReview>(
+                           $"/api/v1/courses/{courseId}/assignments/{assignmentId}/peer_reviews",
+                           opts,
+                           cancellationToken))
+        {
+            yield return item with
+            {
+                AssignmentId = assignmentId,
+                CourseId = courseId
+            };
+        }
     }
 
     /// <summary>
@@ -218,7 +249,7 @@ internal class AssignmentsClient
     public IAsyncEnumerable<PeerReview> ListPeerReviews(Course course, Assignment assignment, List? opts = null,
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return ListPeerReviews(course.Id, assignment.Id, opts, cancellationToken);
     }
 
     /// <summary>
@@ -229,10 +260,23 @@ internal class AssignmentsClient
     /// <param name="opts">The list options.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="IQueryable{Submission}"/> containing the submissions for an assignment.</returns>
-    public IAsyncEnumerable<Submission> ListSubmissions(ulong courseId, ulong assignmentId, SubmissionList? opts = null,
-        CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<Submission> ListSubmissions(ulong courseId, ulong assignmentId, SubmissionList? opts = null,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        opts ??= new SubmissionList();
+        if (!opts.Options.HasFlag(SubmissionInclude.User)) opts = opts with { Options = opts.Options | SubmissionInclude.User };
+        _logger?.Debug("Listing submissions for assignment {assignmentId} in course with id {courseId}", assignmentId, courseId);
+        await foreach (var item in _connection.List<Submission>(
+                           $"/api/v1/courses/{courseId}/assignments/{assignmentId}/submissions",
+                           opts,
+                           cancellationToken))
+        {
+            yield return item with
+            {
+                AssignmentId = assignmentId,
+                CourseId = courseId
+            };
+        }
     }
 
     /// <summary>
@@ -246,7 +290,7 @@ internal class AssignmentsClient
     public IAsyncEnumerable<Submission> ListSubmissions(Course course, Assignment assignment, SubmissionList? opts = null,
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return ListSubmissions(course.Id, assignment.Id, opts, cancellationToken);
     }
 
     /// <summary>

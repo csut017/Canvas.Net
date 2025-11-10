@@ -1,11 +1,11 @@
-﻿using Canvas.Core.Entities;
-using Canvas.Core.Implementations;
-using Canvas.Core.Settings;
-using FakeItEasy;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Canvas.Core.Entities;
+using Canvas.Core.Implementations;
+using Canvas.Core.Settings;
+using FakeItEasy;
 
 namespace Canvas.Core.Tests.Implementations;
 
@@ -65,6 +65,180 @@ public class AssignmentsClientTests
 
         // Assert
         var expected = data.Select(a => a with { CourseId = 6 }).ToList();
+        assignments.ShouldBe(expected);
+    }
+
+    [Fact]
+    public async Task ListOverrideDatesViaEntityCallsUnderlyingConnection()
+    {
+        // Arrange
+        var data = new List<AssignmentDate>
+        {
+            new() { Id = 1, },
+            new() { Id = 2, },
+        };
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.List<AssignmentDate>(
+                "/api/v1/courses/6/assignments/78/overrides",
+                A<List>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(data.ToAsyncEnumerable());
+        var client = new AssignmentsClient(conn);
+
+        // Act
+        var assignments = await client.ListOverrideDates(
+                new Course { Id = 6 },
+                new Assignment { Id = 78 },
+                cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        var expected = data.Select(a => a with { CourseId = 6, AssignmentId = 78 }).ToList();
+        assignments.ShouldBe(expected);
+    }
+
+    [Fact]
+    public async Task ListOverrideDatesViaIdCallsUnderlyingConnection()
+    {
+        // Arrange
+        var data = new List<AssignmentDate>
+        {
+            new() { Id = 1, },
+            new() { Id = 2, },
+        };
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.List<AssignmentDate>(
+                "/api/v1/courses/6/assignments/78/overrides",
+                A<List>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(data.ToAsyncEnumerable());
+        var client = new AssignmentsClient(conn);
+
+        // Act
+        var assignments = await client.ListOverrideDates(
+                6,
+                78,
+                cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        var expected = data.Select(a => a with { CourseId = 6, AssignmentId = 78 }).ToList();
+        assignments.ShouldBe(expected);
+    }
+
+    [Fact]
+    public async Task ListPeerReviewsViaEntityCallsUnderlyingConnection()
+    {
+        // Arrange
+        var data = new List<PeerReview>
+        {
+            new() { Id = 1, },
+            new() { Id = 2, },
+        };
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.List<PeerReview>(
+                "/api/v1/courses/6/assignments/78/peer_reviews",
+                A<List>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(data.ToAsyncEnumerable());
+        var client = new AssignmentsClient(conn);
+
+        // Act
+        var assignments = await client.ListPeerReviews(
+                new Course { Id = 6 },
+                new Assignment { Id = 78 },
+                cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        var expected = data.Select(a => a with { CourseId = 6, AssignmentId = 78 }).ToList();
+        assignments.ShouldBe(expected);
+    }
+
+    [Fact]
+    public async Task ListPeerReviewsViaIdCallsUnderlyingConnection()
+    {
+        // Arrange
+        var data = new List<PeerReview>
+        {
+            new() { Id = 1, },
+            new() { Id = 2, },
+        };
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.List<PeerReview>(
+                "/api/v1/courses/6/assignments/78/peer_reviews",
+                A<List>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(data.ToAsyncEnumerable());
+        var client = new AssignmentsClient(conn);
+
+        // Act
+        var assignments = await client.ListPeerReviews(
+                6,
+                78,
+                cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        var expected = data.Select(a => a with { CourseId = 6, AssignmentId = 78 }).ToList();
+        assignments.ShouldBe(expected);
+    }
+
+    [Fact]
+    public async Task ListSubmissionsViaEntityCallsUnderlyingConnection()
+    {
+        // Arrange
+        var data = new List<Submission>
+        {
+            new() { Id = 1, },
+            new() { Id = 2, },
+        };
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.List<Submission>(
+                "/api/v1/courses/6/assignments/78/submissions",
+                A<List>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(data.ToAsyncEnumerable());
+        var client = new AssignmentsClient(conn);
+
+        // Act
+        var assignments = await client.ListSubmissions(
+                new Course { Id = 6 },
+                new Assignment { Id = 78 },
+                cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        var expected = data.Select(a => a with { CourseId = 6, AssignmentId = 78 }).ToList();
+        assignments.ShouldBe(expected);
+    }
+
+    [Fact]
+    public async Task ListSubmissionsViaIdCallsUnderlyingConnection()
+    {
+        // Arrange
+        var data = new List<Submission>
+        {
+            new() { Id = 1, },
+            new() { Id = 2, },
+        };
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.List<Submission>(
+                "/api/v1/courses/6/assignments/78/submissions",
+                A<List>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(data.ToAsyncEnumerable());
+        var client = new AssignmentsClient(conn);
+
+        // Act
+        var assignments = await client.ListSubmissions(
+                6,
+                78,
+                cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        var expected = data.Select(a => a with { CourseId = 6, AssignmentId = 78 }).ToList();
         assignments.ShouldBe(expected);
     }
 

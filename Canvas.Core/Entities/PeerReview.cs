@@ -4,7 +4,7 @@
 /// A peer review for an assignment.
 /// </summary>
 public record PeerReview
-    : EntityWithId
+    : EntityWithId, ICourseItem
 {
     /// <summary>
     /// The identifier of the assessor.
@@ -17,4 +17,16 @@ public record PeerReview
     /// </summary>
     [JsonPropertyName("user_id")]
     public ulong UserId { get; init; }
+
+    /// <summary>
+    /// The identifier of the owning course.
+    /// </summary>
+    [JsonIgnore]
+    public ulong CourseId { get; init; }
+
+    /// <summary>
+    /// The identifier of the assignment.
+    /// </summary>
+    [JsonIgnore]
+    public ulong AssignmentId { get; init; }
 }

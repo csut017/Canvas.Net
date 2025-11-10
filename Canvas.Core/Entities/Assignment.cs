@@ -106,5 +106,6 @@ public record Assignment
     /// <summary>
     /// The identifier of the owning course.
     /// </summary>
+    [JsonIgnore]
     public ulong CourseId { get; init; }
 }

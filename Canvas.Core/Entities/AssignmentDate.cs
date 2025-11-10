@@ -5,7 +5,7 @@
 /// </summary>
 [DebuggerDisplay($"{{{nameof(SetType)}}}: {{{nameof(Name)}}}")]
 public record AssignmentDate
-    : EntityWithId
+    : EntityWithId, ICourseItem
 {
     /// <summary>
     /// The ID of the group that these dates are for.
@@ -66,4 +66,16 @@ public record AssignmentDate
     /// </summary>
     [JsonPropertyName("unlock_at")]
     public DateTime? WhenUnlocked { get; init; }
+
+    /// <summary>
+    /// The identifier of the owning course.
+    /// </summary>
+    [JsonIgnore]
+    public ulong CourseId { get; init; }
+
+    /// <summary>
+    /// The identifier of the assignment.
+    /// </summary>
+    [JsonIgnore]
+    public ulong AssignmentId { get; init; }
 }

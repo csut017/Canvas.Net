@@ -4,7 +4,7 @@
 /// A submission for an assignment.
 /// </summary>
 public record Submission
-    : EntityWithId
+    : EntityWithId, ICourseItem
 {
     /// <summary>
     /// The attached files for the submission.
@@ -68,4 +68,16 @@ public record Submission
     /// </summary>
     [JsonPropertyName("workflow_state")]
     public string? WorkflowState { get; init; }
+
+    /// <summary>
+    /// The identifier of the owning course.
+    /// </summary>
+    [JsonIgnore]
+    public ulong CourseId { get; init; }
+
+    /// <summary>
+    /// The identifier of the assignment.
+    /// </summary>
+    [JsonIgnore]
+    public ulong AssignmentId { get; init; }
 }
