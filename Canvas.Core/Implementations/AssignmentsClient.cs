@@ -143,7 +143,13 @@ internal class AssignmentsClient
     public IAsyncEnumerable<Assignment> ListForCourse(ulong courseId, AssignmentList? opts = null,
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        opts ??= new AssignmentList();
+
+        _logger?.Debug("Listing assignments for course with id {courseId}", courseId);
+        return _connection.List<Assignment>(
+            $"/api/v1/courses/{courseId}/assignments",
+            opts,
+            cancellationToken);
     }
 
     /// <summary>
@@ -156,7 +162,7 @@ internal class AssignmentsClient
     public IAsyncEnumerable<Assignment> ListForCourse(Course course, AssignmentList? opts = null,
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return ListForCourse(course.Id, opts, cancellationToken);
     }
 
     /// <summary>
@@ -302,15 +308,18 @@ internal class AssignmentsClient
     /// <param name="opts">Any options for retrieving the assignment.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="Course"/> instance if found on Canvas; <c>null</c> otherwise.</returns>
-    public Task<Assignment?> Retrieve(ulong courseId, ulong assignmentId, AssignmentItem? opts = null,
+    public async Task<Assignment?> Retrieve(ulong courseId, ulong assignmentId, AssignmentItem? opts = null,
         CancellationToken cancellationToken = default)
     {
         opts ??= new AssignmentItem();
         _logger?.Debug("Retrieving assignment {assignmentId} in course with id {courseId}", assignmentId, courseId);
-        return _connection.Retrieve<Assignment>(
+        var assignment = await _connection.Retrieve<Assignment>(
             $"/api/v1/courses/{courseId}/assignments/{assignmentId}",
             opts.ToParameters(),
             cancellationToken);
+        return assignment == null
+            ? null
+            : assignment with { CourseId = courseId };
     }
 
     /// <summary>

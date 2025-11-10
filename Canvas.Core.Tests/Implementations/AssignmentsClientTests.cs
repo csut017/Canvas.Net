@@ -1,6 +1,9 @@
 ﻿using Canvas.Core.Entities;
 using Canvas.Core.Implementations;
+using Canvas.Core.Settings;
 using FakeItEasy;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,6 +12,62 @@ namespace Canvas.Core.Tests.Implementations;
 [TestSubject(typeof(AssignmentsClient))]
 public class AssignmentsClientTests
 {
+    [Fact]
+    public async Task ListForCourseViaEntityCallsUnderlyingConnection()
+    {
+        // Arrange
+        var data = new List<Assignment>
+        {
+            new() { Id = 1, },
+            new() { Id = 2, },
+        };
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.List<Assignment>(
+                "/api/v1/courses/6/assignments",
+                A<List>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(data.ToAsyncEnumerable());
+        var client = new AssignmentsClient(conn);
+
+        // Act
+        var assignments = await client.ListForCourse(
+                new Course { Id = 6 },
+                cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        var expected = data.Select(a => a with { CourseId = 6 }).ToList();
+        assignments.ShouldBe(expected);
+    }
+
+    [Fact]
+    public async Task ListForCourseViaIdCallsUnderlyingConnection()
+    {
+        // Arrange
+        var data = new List<Assignment>
+        {
+            new() { Id = 1, },
+            new() { Id = 2, },
+        };
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.List<Assignment>(
+                "/api/v1/courses/6/assignments",
+                A<List>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(data.ToAsyncEnumerable());
+        var client = new AssignmentsClient(conn);
+
+        // Act
+        var assignments = await client.ListForCourse(
+                6,
+                cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        var expected = data.Select(a => a with { CourseId = 6 }).ToList();
+        assignments.ShouldBe(expected);
+    }
+
     [Fact]
     public async Task RetrieveByEntityCallsUnderlyingConnection()
     {
@@ -30,7 +89,8 @@ public class AssignmentsClientTests
         // Assert
         assignment.ShouldSatisfyAllConditions(
             () => assignment.ShouldNotBeNull(),
-            () => assignment?.Id.ShouldBe(1123UL)
+            () => assignment?.Id.ShouldBe(1123UL),
+            () => assignment?.CourseId.ShouldBe(987UL)
         );
     }
 
@@ -55,7 +115,8 @@ public class AssignmentsClientTests
         // Assert
         assignment.ShouldSatisfyAllConditions(
             () => assignment.ShouldNotBeNull(),
-            () => assignment?.Id.ShouldBe(149UL)
+            () => assignment?.Id.ShouldBe(149UL),
+            () => assignment?.CourseId.ShouldBe(987UL)
         );
     }
 

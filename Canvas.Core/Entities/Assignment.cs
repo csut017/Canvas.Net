@@ -4,7 +4,7 @@
 /// The details of an assignment.
 /// </summary>
 public record Assignment
-    : EntityWithIdAndName
+    : EntityWithIdAndName, ICourseItem
 {
     /// <summary>
     /// The allowed file extensions.
@@ -102,4 +102,9 @@ public record Assignment
     /// </summary>
     [JsonPropertyName("due_at")]
     public DateTime? WhenDue { get; init; }
+
+    /// <summary>
+    /// The identifier of the owning course.
+    /// </summary>
+    public ulong CourseId { get; init; }
 }
