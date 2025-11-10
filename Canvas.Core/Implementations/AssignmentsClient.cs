@@ -1,9 +1,9 @@
-﻿using System.Runtime.CompilerServices;
-using Canvas.Core.Clients;
+﻿using Canvas.Core.Clients;
 using Canvas.Core.Entities;
 using Canvas.Core.Settings;
 using CommunityToolkit.Diagnostics;
 using Serilog;
+using System.Runtime.CompilerServices;
 
 namespace Canvas.Core.Implementations;
 
@@ -86,7 +86,7 @@ internal class AssignmentsClient
     /// <returns>A new <see cref="Assignment"/> instance.</returns>
     public Task<Assignment> Create(Course course, Assignment assignment, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return Create(course.Id, assignment, cancellationToken);
     }
 
     /// <summary>
@@ -96,9 +96,17 @@ internal class AssignmentsClient
     /// <param name="assignment">The assignment details.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A new <see cref="Assignment"/> instance.</returns>
-    public Task<Assignment> Create(ulong courseId, Assignment assignment, CancellationToken cancellationToken = default)
+    public async Task<Assignment> Create(ulong courseId, Assignment assignment, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrEmpty(assignment.Name)) throw new ClientException("Assignments must have a name - cannot be null or empty");
+        _logger?.Debug("Creating new assignment in course {courseId} with name {name}", courseId, assignment.Name);
+        var item = await _connection.PostJson<Assignment>(
+            $"/api/v1/courses/{courseId}/assignments",
+            assignment,
+            false,
+            cancellationToken);
+        if (item == null) throw new ClientException("No assignment returned from Canvas");
+        return item with { CourseId = courseId };
     }
 
     /// <summary>
@@ -457,9 +465,17 @@ internal class AssignmentsClient
     /// <param name="assignment">The assignment details.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A new <see cref="Assignment"/> instance.</returns>
-    public Task<Assignment> Update(ulong courseId, ulong assignmentId, Assignment assignment, CancellationToken cancellationToken = default)
+    public async Task<Assignment> Update(ulong courseId, ulong assignmentId, Assignment assignment, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrEmpty(assignment.Name)) throw new ClientException("Assignments must have a name - cannot be null or empty");
+        _logger?.Debug("Updating existing assignment in course {courseId} with name {name} [{assignmentId}]", courseId, assignment.Name, assignmentId);
+        var item = await _connection.PutJson<Assignment>(
+            $"/api/v1/courses/{courseId}/assignments/{assignmentId}",
+            assignment,
+            false,
+            cancellationToken);
+        if (item == null) throw new ClientException("No assignment returned from Canvas");
+        return item with { CourseId = courseId };
     }
 
     /// <summary>

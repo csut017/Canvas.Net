@@ -1,8 +1,8 @@
 ﻿using Canvas.Core.Settings;
 using CommunityToolkit.Diagnostics;
 using Serilog;
-using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
@@ -124,128 +124,47 @@ public class Connection
     }
 
     /// <summary>
-    /// Performs a POST operation and passes in a set of form values.
+    /// Performs a POST operation passing in a JSON object, and deserializing the JSON response.
     /// </summary>
     /// <param name="url">The URL to use.</param>
-    /// <param name="formValues">The values in the form.</param>
+    /// <param name="item">The item to convert to JSON.</param>
     /// <param name="throwExceptionOnFailure">Whether to throw an exception if the server returns a non-success code.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
-    /// <returns>An <see cref="HttpResponseMessage"/> instance containing the response from the server.</returns>
-    public async Task<HttpResponseMessage> Post(
-        string url,
-        IDictionary<string, string> formValues,
-        bool throwExceptionOnFailure = true,
-        CancellationToken cancellationToken = default)
+    /// <returns>A <see cref="TItem"/> instance containing the response.</returns>
+    public async Task<TItem?> PostJson<TItem>(string url, object item, bool throwExceptionOnFailure = true,
+        CancellationToken cancellationToken = default) where TItem : class
     {
         var uri = EnsureAbsoluteUri(url);
         Logger?.Debug("Sending POST to {url}", uri);
-        var response = await _client.PostAsync(uri,
-            new FormUrlEncodedContent(formValues), cancellationToken);
+        var response = await _client.PostAsJsonAsync(uri,
+            item,
+            _serializerOptions,
+            cancellationToken);
         Logger?.Debug("Received {status} from {url} - POST", response.StatusCode, url);
         if (throwExceptionOnFailure && !response.IsSuccessStatusCode) throw ConnectionException.New(url, response);
-        return response;
+        return await response.Content.ReadFromJsonAsync<TItem>(_serializerOptions, cancellationToken);
     }
 
     /// <summary>
-    /// Performs a POST operation and passes a stream.
+    /// Performs a PUT operation passing in a JSON object, and deserializing the JSON response.
     /// </summary>
     /// <param name="url">The URL to use.</param>
-    /// <param name="stream">The stream to use.</param>
-    /// <param name="streamName">The name of the stream</param>
-    /// <param name="fileName">The name of the file.</param>
-    /// <param name="formValues">Any additional parameters to send.</param>
-    /// <param name="throwExceptionOnFailure">Whether to throw an exception if the server returns a non-success code.</param>
-    /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
-    /// <returns>An <see cref="HttpResponseMessage"/> instance containing the response from the server.</returns>
-    public async Task<HttpResponseMessage> Post(
-        string url,
-        Stream stream,
-        string streamName,
-        string fileName,
-        IDictionary<string, string>? formValues = null,
-        bool throwExceptionOnFailure = true,
-        CancellationToken cancellationToken = default)
-    {
-        using var streamContent = new StreamContent(stream);
-        using var content = new MultipartFormDataContent();
-        if (formValues != null)
-        {
-            foreach (var value in formValues)
-            {
-                content.Add(new StringContent(value.Value), value.Key);
-            }
-        }
-
-        content.Add(streamContent, streamName, Path.GetFileName(fileName));
-        var uri = EnsureAbsoluteUri(url);
-        Logger?.Debug("Sending GET to {url}", uri);
-        var response = await _client.PostAsync(uri, content, cancellationToken);
-        Logger?.Debug("Received {status} from {url} - POST", response.StatusCode, url);
-        if (throwExceptionOnFailure && !response.IsSuccessStatusCode) throw ConnectionException.New(url, response);
-        return response;
-    }
-
-    /// <summary>
-    /// Performs a POST operation passing in a set of form values, and deserializing the JSON response.
-    /// </summary>
-    /// <param name="url">The URL to use.</param>
-    /// <param name="formValues">The values in the form.</param>
+    /// <param name="item">The item to convert to JSON.</param>
     /// <param name="throwExceptionOnFailure">Whether to throw an exception if the server returns a non-success code.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="TItem"/> instance containing the response.</returns>
-    public async Task<TItem?> Post<TItem>(
-        string url,
-        IDictionary<string, string> formValues,
-        bool throwExceptionOnFailure = true,
+    public async Task<TItem?> PutJson<TItem>(string url, object item, bool throwExceptionOnFailure = true,
         CancellationToken cancellationToken = default) where TItem : class
-    {
-        var response = await Post(url, formValues, throwExceptionOnFailure, cancellationToken);
-        var json = await InitialiseResponseStream(this, response, cancellationToken);
-        var item = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions, cancellationToken);
-        return item;
-    }
-
-    /// <summary>
-    /// Performs a PUT operation and passes in a set of form values.
-    /// </summary>
-    /// <param name="url">The URL to use.</param>
-    /// <param name="formValues">The values in the form.</param>
-    /// <param name="throwExceptionOnFailure">Whether to throw an exception if the server returns a non-success code.</param>
-    /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
-    /// <returns>An <see cref="HttpResponseMessage"/> instance containing the response from the server.</returns>
-    public async Task<HttpResponseMessage> Put(
-        string url,
-        IDictionary<string, string> formValues,
-        bool throwExceptionOnFailure = true,
-        CancellationToken cancellationToken = default)
     {
         var uri = EnsureAbsoluteUri(url);
         Logger?.Debug("Sending PUT to {url}", uri);
-        var response = await _client.PutAsync(
-            uri,
-            new FormUrlEncodedContent(formValues),
+        var response = await _client.PutAsJsonAsync(uri,
+            item,
+            _serializerOptions,
             cancellationToken);
-        Logger?.Debug("Received {status} from {url} - PUT", response.StatusCode, url);
+        Logger?.Debug("Received {status} from {url} - POST", response.StatusCode, url);
         if (throwExceptionOnFailure && !response.IsSuccessStatusCode) throw ConnectionException.New(url, response);
-        return response;
-    }
-
-    /// <summary>
-    /// Performs a PUT operation passing in a set of form values, and deserializing the JSON response.
-    /// </summary>
-    /// <param name="url">The URL to use.</param>
-    /// <param name="formValues">The values in the form.</param>
-    /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
-    /// <returns>A <see cref="TItem"/> instance containing the response.</returns>
-    public async Task<TItem?> Put<TItem>(
-        string url,
-        IDictionary<string, string> formValues,
-        CancellationToken cancellationToken = default) where TItem : class
-    {
-        var response = await Put(url, formValues, cancellationToken: cancellationToken);
-        var json = await InitialiseResponseStream(this, response, cancellationToken);
-        var item = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions, cancellationToken);
-        return item;
+        return await response.Content.ReadFromJsonAsync<TItem>(_serializerOptions, cancellationToken);
     }
 
     /// <summary>
@@ -278,56 +197,6 @@ public class Connection
     public void UpdateLogger(ILogger logger)
     {
         Logger = logger.ForContext<Connection>();
-    }
-
-    /// <summary>
-    /// Uploads a file to Canvas.
-    /// </summary>
-    /// <typeparam name="TItem">The type of entity to receive at the end of the process.</typeparam>
-    /// <param name="stream">The <see cref="Stream"/> to upload.</param>
-    /// <param name="url">The URL to trigger the process.</param>
-    /// <param name="formValues">The additional values to pass.</param>
-    /// <param name="fileName">The name of the file.</param>
-    /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
-    /// <returns>A <see cref="TItem"/> instance containing the final response.</returns>
-    public async Task<TItem> UploadFile<TItem>(
-        Stream stream,
-        string url,
-        Dictionary<string, string> formValues,
-        string fileName,
-        CancellationToken cancellationToken = default) where TItem : class
-    {
-        // Uploading files is a three-stage process: see https://canvas.instructure.com/doc/api/file.file_uploads.html
-        // Step 1: start upload process
-        var response = await Post(url, formValues, cancellationToken: cancellationToken);
-        var uploadJson = await InitialiseResponseStream(this, response, cancellationToken);
-        var uploadToken = await JsonSerializer.DeserializeAsync<FileUploadToken>(uploadJson, _serializerOptions, cancellationToken);
-        if (string.IsNullOrEmpty(uploadToken?.Url)) throw new ConnectionException(url, "Upload failed: invalid JSON token received");
-
-        // Step 2: upload the file data
-        Logger?.Debug("Sending data to {url}", uploadToken.Url);
-        response = await Post(uploadToken.Url, stream, fileName, fileName, uploadToken.Parameters, false, cancellationToken);
-        if ((int)response.StatusCode < 200 || (int)response.StatusCode > 399) throw ConnectionException.New(uploadToken.Url, response);
-
-        // Step 3: retrieve file details
-        TItem? newFile;
-        if (response.StatusCode == HttpStatusCode.OK)
-        {
-            // Details were directly returned
-            Logger?.Debug("Received {status} - parsing response", response.StatusCode);
-            var json = await InitialiseResponseStream(this, response, cancellationToken);
-            newFile = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions, cancellationToken);
-            return newFile
-                ?? throw new ConnectionException(uploadToken.Url, "Upload failed: invalid final JSON received");
-        }
-
-        // Need to follow the redirect first
-        var location = response.Headers.Location
-            ?? throw new ConnectionException(uploadToken.Url, "Upload failed: no redirect location received");
-        Logger?.Debug("Received {status} - getting {url}", response.StatusCode, location);
-        newFile = await Retrieve<TItem>(location.ToString(), [], cancellationToken);
-        return newFile
-            ?? throw new ConnectionException(location.ToString(), "Upload failed: invalid final JSON received");
     }
 
     /// <summary>

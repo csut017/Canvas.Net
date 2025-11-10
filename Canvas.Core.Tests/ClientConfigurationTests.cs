@@ -3,7 +3,6 @@ using FakeItEasy;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,31 +89,14 @@ public class ClientConfigurationTests
             throw new NotImplementedException();
         }
 
-        public Task<HttpResponseMessage> Post(string url, IDictionary<string, string> formValues, bool throwExceptionOnFailure = true,
-            CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<HttpResponseMessage> Post(string url, Stream stream, string streamName, string fileName, IDictionary<string, string> formValues = null,
-            bool throwExceptionOnFailure = true, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<TItem> Post<TItem>(string url, IDictionary<string, string> formValues, bool throwExceptionOnFailure = true,
+        public Task<TItem> PostJson<TItem>(string url, object item, bool throwExceptionOnFailure = true,
             CancellationToken cancellationToken = default) where TItem : class
         {
             throw new NotImplementedException();
         }
 
-        public Task<HttpResponseMessage> Put(string url, IDictionary<string, string> formValues, bool throwExceptionOnFailure = true,
-            CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<TItem> Put<TItem>(string url, IDictionary<string, string> formValues, CancellationToken cancellationToken = default) where TItem : class
+        public Task<TItem> PutJson<TItem>(string url, object item, bool throwExceptionOnFailure = true,
+            CancellationToken cancellationToken = default) where TItem : class
         {
             throw new NotImplementedException();
         }
@@ -127,12 +109,6 @@ public class ClientConfigurationTests
         public void UpdateLogger(ILogger logger)
         {
             Logger = logger;
-        }
-
-        public Task<TItem> UploadFile<TItem>(Stream stream, string url, Dictionary<string, string> formValues, string fileName,
-                    CancellationToken cancellationToken = default) where TItem : class
-        {
-            throw new NotImplementedException();
         }
     }
 }

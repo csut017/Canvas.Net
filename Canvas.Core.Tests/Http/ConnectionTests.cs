@@ -1,15 +1,12 @@
 ﻿using Canvas.Core.Http;
 using Canvas.Core.Settings;
 using FakeItEasy;
-using HttpMultipartParser;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -173,7 +170,7 @@ public class ConnectionTests
     }
 
     [Fact]
-    public async Task PostCallsClientAndDeserializesJson()
+    public async Task PostJsonCallsClientAndDeserializesJson()
     {
         // Arrange
         var data = new FakeDataItem(1124);
@@ -182,9 +179,9 @@ public class ConnectionTests
         var conn = new Connection("http://canvas.com", "1234", client: client);
 
         // Act
-        var resp = await conn.Post<FakeDataItem>(
+        var resp = await conn.PostJson<FakeDataItem>(
             "api/v1/test",
-            new Dictionary<string, string> { { "One", "1" }, },
+            data,
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -195,148 +192,26 @@ public class ConnectionTests
     }
 
     [Fact]
-    public async Task PostWithDataCallsClient()
+    public async Task PostJsonChecksResponseCode()
     {
         // Arrange
-        var handler = new FakeJsonHandler(new { }, HttpStatusCode.OK);
+        var data = new FakeDataItem(1124);
+        var handler = new FakeJsonHandler(data, HttpStatusCode.BadRequest);
         var client = new HttpClient(handler);
         var conn = new Connection("http://canvas.com", "1234", client: client);
 
         // Act
-        var resp = await conn.Post(
+        var ex = await Assert.ThrowsAsync<ConnectionException>(async () => await conn.PostJson<FakeDataItem>(
             "api/v1/test",
-            new Dictionary<string, string> { { "One", "1" }, },
-            cancellationToken: TestContext.Current.CancellationToken);
+            data,
+            cancellationToken: TestContext.Current.CancellationToken));
 
         // Assert
-        resp.ShouldSatisfyAllConditions(
-            () => resp.ShouldNotBeNull(),
-            () => resp.StatusCode.ShouldBe(HttpStatusCode.OK)
-        );
-        var content = await resp.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        content.ShouldBe("{}");
-        handler.ShouldSatisfyAllConditions(
-            () => handler.Method.ShouldBe(HttpMethod.Post),
-            () => handler.Data.ShouldBe("One=1")
-        );
+        ex.Message.ShouldBe("Canvas returned a non-success response code [BadRequest]");
     }
 
     [Fact]
-    public async Task PostWithDataThrowsException()
-    {
-        // Arrange
-        var client = new HttpClient(
-            new FakeJsonHandler(new { }, HttpStatusCode.BadRequest));
-        var conn = new Connection("http://canvas.com", "1234", client: client);
-
-        // Act
-        var ex = await Assert.ThrowsAsync<ConnectionException>(
-            async () => await conn.Post(
-                "api/v1/test",
-                new Dictionary<string, string>(),
-                cancellationToken: TestContext.Current.CancellationToken));
-
-        // Assert
-        ex.ShouldSatisfyAllConditions(
-            () => ex.Message.ShouldBe("Canvas returned a non-success response code [BadRequest]"),
-            () => ex.Url.ShouldBe("api/v1/test"),
-            () => ex.Content.ShouldBe("{}")
-        );
-    }
-
-    [Fact]
-    public async Task PostWithStreamCallsClient()
-    {
-        // Arrange
-        var handler = new FakeJsonHandler(new { }, HttpStatusCode.OK);
-        var client = new HttpClient(handler);
-        var conn = new Connection("http://canvas.com", "1234", client: client);
-        var stream = new MemoryStream("Test stream data"u8.ToArray());
-
-        // Act
-        var resp = await conn.Post(
-            "api/v1/test",
-            stream,
-            "StreamName",
-            "FileName",
-            cancellationToken: TestContext.Current.CancellationToken);
-
-        // Assert
-        resp.ShouldSatisfyAllConditions(
-            () => resp.ShouldNotBeNull(),
-            () => resp.StatusCode.ShouldBe(HttpStatusCode.OK)
-        );
-        var content = await resp.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        content.ShouldBe("{}");
-        handler.Method.ShouldBe(HttpMethod.Post);
-        var parser = await MultipartFormDataParser
-            .ParseAsync(
-                new MemoryStream(Encoding.UTF8.GetBytes(handler.Data ?? string.Empty)),
-                cancellationToken: TestContext.Current.CancellationToken);
-        var file = parser?.Files[0];
-        file.ShouldNotBeNull();
-        file!.Name.ShouldBe("StreamName");
-        file.FileName.ShouldBe("FileName");
-        using var reader = new StreamReader(file.Data);
-        var receivedData = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
-        receivedData.ShouldBe("Test stream data");
-    }
-
-    [Fact]
-    public async Task PostWithStreamThrowsException()
-    {
-        // Arrange
-        var client = new HttpClient(
-            new FakeJsonHandler(new { }, HttpStatusCode.BadRequest));
-        var conn = new Connection("http://canvas.com", "1234", client: client);
-        var stream = new MemoryStream("Test stream data"u8.ToArray());
-
-        // Act
-        var ex = await Assert.ThrowsAsync<ConnectionException>(
-            async () => await conn.Post(
-                "api/v1/test",
-                stream,
-                "StreamName",
-                "FileName",
-                cancellationToken: TestContext.Current.CancellationToken));
-
-        // Assert
-        ex.ShouldSatisfyAllConditions(
-            () => ex.Message.ShouldBe("Canvas returned a non-success response code [BadRequest]"),
-            () => ex.Url.ShouldBe("api/v1/test"),
-            () => ex.Content.ShouldBe("{}")
-        );
-    }
-
-    [Fact]
-    public async Task PutCallsClient()
-    {
-        // Arrange
-        var handler = new FakeJsonHandler(new { }, HttpStatusCode.OK);
-        var client = new HttpClient(handler);
-        var conn = new Connection("http://canvas.com", "1234", client: client);
-
-        // Act
-        var resp = await conn.Put(
-            "api/v1/test",
-            new Dictionary<string, string> { { "One", "1" }, },
-            cancellationToken: TestContext.Current.CancellationToken);
-
-        // Assert
-        resp.ShouldSatisfyAllConditions(
-            () => resp.ShouldNotBeNull(),
-            () => resp.StatusCode.ShouldBe(HttpStatusCode.OK)
-        );
-        var content = await resp.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        content.ShouldBe("{}");
-        handler.ShouldSatisfyAllConditions(
-            () => handler.Method.ShouldBe(HttpMethod.Put),
-            () => handler.Data.ShouldBe("One=1")
-        );
-    }
-
-    [Fact]
-    public async Task PutCallsClientAndDeserializesJson()
+    public async Task PutJsonCallsClientAndDeserializesJson()
     {
         // Arrange
         var data = new FakeDataItem(1124);
@@ -345,9 +220,9 @@ public class ConnectionTests
         var conn = new Connection("http://canvas.com", "1234", client: client);
 
         // Act
-        var resp = await conn.Put<FakeDataItem>(
+        var resp = await conn.PutJson<FakeDataItem>(
             "api/v1/test",
-            new Dictionary<string, string> { { "One", "1" }, },
+            data,
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -355,26 +230,22 @@ public class ConnectionTests
     }
 
     [Fact]
-    public async Task PutThrowsException()
+    public async Task PutJsonChecksResponseCode()
     {
         // Arrange
-        var client = new HttpClient(
-            new FakeJsonHandler(new { }, HttpStatusCode.BadRequest));
+        var data = new FakeDataItem(1124);
+        var handler = new FakeJsonHandler(data, HttpStatusCode.BadRequest);
+        var client = new HttpClient(handler);
         var conn = new Connection("http://canvas.com", "1234", client: client);
 
         // Act
-        var ex = await Assert.ThrowsAsync<ConnectionException>(
-            async () => await conn.Put(
-                "api/v1/test",
-                new Dictionary<string, string>(),
-                cancellationToken: TestContext.Current.CancellationToken));
+        var ex = await Assert.ThrowsAsync<ConnectionException>(async () => await conn.PutJson<FakeDataItem>(
+            "api/v1/test",
+            data,
+            cancellationToken: TestContext.Current.CancellationToken));
 
         // Assert
-        ex.ShouldSatisfyAllConditions(
-            () => ex.Message.ShouldBe("Canvas returned a non-success response code [BadRequest]"),
-            () => ex.Url.ShouldBe("api/v1/test"),
-            () => ex.Content.ShouldBe("{}")
-        );
+        ex.Message.ShouldBe("Canvas returned a non-success response code [BadRequest]");
     }
 
     [Fact]
@@ -450,85 +321,8 @@ public class ConnectionTests
         conn.Logger.ShouldNotBeNull();
     }
 
-    [Fact]
-    public async Task UploadFileHandlesOk()
-    {
-        const string url1 = "/api/v1/folders/23/files";
-        const string url2 = "https://some-bucket.s3.amazonaws.com/";
-        var response1 = new HttpResponseMessage(HttpStatusCode.OK)
-        {
-            Content = new StringContent(JsonSerializer.Serialize(new
-            {
-                upload_url = url2,
-                upload_params = new { key = "/users/1234/files/profile_pic.jpg", },
-            })),
-        };
-        var response2 = new HttpResponseMessage(HttpStatusCode.OK)
-        {
-            Content = new StringContent(JsonSerializer.Serialize(new { id = 1234, })),
-        };
-        var args = new Dictionary<string, string>();
-        var stream = new MemoryStream("This is a test"u8.ToArray());
-        var handler = new FakeHandler(response1, response2);
-        var client = new HttpClient(handler);
-        var conn = new Connection("http://canvas.com", "1234", client: client);
-
-        // Act
-        var result = await conn.UploadFile<FakeDataItem>(
-            stream,
-            url1,
-            args,
-            "test.file",
-            cancellationToken: TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Id.ShouldBe(1234);
-        handler.NumberOfCalls.ShouldBe(2);
-    }
-
-    [Fact]
-    public async Task UploadFileHandlesRedirect()
-    {
-        const string url1 = "/api/v1/folders/23/files";
-        const string url2 = "https://some-bucket.s3.amazonaws.com/";
-        const string url3 = "https://canvas.com/files/1234";
-        var response1 = new HttpResponseMessage(HttpStatusCode.OK)
-        {
-            Content = new StringContent(JsonSerializer.Serialize(new
-            {
-                upload_url = url2,
-                upload_params = new { key = "/users/1234/files/profile_pic.jpg", },
-            })),
-        };
-        var response2 = new HttpResponseMessage(HttpStatusCode.Redirect)
-        {
-            Content = new StringContent(JsonSerializer.Serialize(new { id = 1234, })),
-        };
-        var response3 = new HttpResponseMessage(HttpStatusCode.OK)
-        {
-            Content = new StringContent(JsonSerializer.Serialize(new { id = 1234, })),
-        };
-        response2.Headers.Add("location", url3);
-        var args = new Dictionary<string, string>();
-        var stream = new MemoryStream("This is a test"u8.ToArray());
-        var handler = new FakeHandler(response1, response2, response3);
-        var client = new HttpClient(handler);
-        var conn = new Connection("http://canvas.com", "1234", client: client);
-
-        // Act
-        var result = await conn.UploadFile<FakeDataItem>(
-            stream,
-            url1, args,
-            "test.file",
-            cancellationToken: TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Id.ShouldBe(1234);
-        handler.NumberOfCalls.ShouldBe(3);
-    }
-
     public class FakeHandler(params HttpResponseMessage[] messages)
-        : HttpMessageHandler
+                                : HttpMessageHandler
     {
         private int _position;
 

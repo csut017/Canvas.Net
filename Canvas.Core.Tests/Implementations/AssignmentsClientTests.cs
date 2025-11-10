@@ -1,17 +1,171 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Canvas.Core.Entities;
+﻿using Canvas.Core.Entities;
 using Canvas.Core.Implementations;
 using Canvas.Core.Settings;
 using FakeItEasy;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Canvas.Core.Tests.Implementations;
 
 [TestSubject(typeof(AssignmentsClient))]
 public class AssignmentsClientTests
 {
+    [Fact]
+    public async Task CreateViaEntityCallsUnderlyingConnection()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.PostJson<Assignment>(
+                "/api/v1/courses/987/assignments",
+                A<Assignment>.Ignored,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult(new Assignment { Id = 149 }));
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment
+        {
+            Id = 149,
+            CourseId = 987,
+            Name = "An assignment"
+        };
+
+        // Act
+        var newItem = await client.Create(
+            new Course { Id = 987 },
+            assignment,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        newItem.ShouldSatisfyAllConditions(
+            () => newItem.ShouldNotBeNull(),
+            () => newItem.Id.ShouldBe(149UL),
+            () => newItem.CourseId.ShouldBe(987UL)
+        );
+    }
+
+    [Fact]
+    public async Task CreateViaEntityChecksCanvasResponse()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.PostJson<Assignment>(
+                "/api/v1/courses/987/assignments",
+                A<Assignment>.Ignored,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult<Assignment>(null));
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment { Name = "An assignment" };
+
+        // Act
+        var ex = await Assert.ThrowsAsync<ClientException>(
+            async () => await client.Create(
+                new Course { Id = 987 },
+                assignment,
+                cancellationToken: TestContext.Current.CancellationToken));
+
+        // Assert
+        ex.Message.ShouldBe("No assignment returned from Canvas");
+    }
+
+    [Fact]
+    public async Task CreateViaEntityChecksName()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment { Name = string.Empty };
+
+        // Act
+        var ex = await Assert.ThrowsAsync<ClientException>(
+            async () => await client.Create(
+                new Course { Id = 987 },
+                assignment,
+                cancellationToken: TestContext.Current.CancellationToken));
+
+        // Assert
+        ex.Message.ShouldBe("Assignments must have a name - cannot be null or empty");
+    }
+
+    [Fact]
+    public async Task CreateViaIdCallsUnderlyingConnection()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.PostJson<Assignment>(
+                "/api/v1/courses/987/assignments",
+                A<Assignment>.Ignored,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult(new Assignment { Id = 149 }));
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment
+        {
+            Id = 149,
+            CourseId = 987,
+            Name = "An assignment"
+        };
+
+        // Act
+        var newItem = await client.Create(
+            987,
+            assignment,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        newItem.ShouldSatisfyAllConditions(
+            () => newItem.ShouldNotBeNull(),
+            () => newItem.Id.ShouldBe(149UL),
+            () => newItem.CourseId.ShouldBe(987UL)
+        );
+    }
+
+    [Fact]
+    public async Task CreateViaIdChecksCanvasResponse()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.PostJson<Assignment>(
+                "/api/v1/courses/987/assignments",
+                A<Assignment>.Ignored,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult<Assignment>(null));
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment { Name = "An assignment" };
+
+        // Act
+        var ex = await Assert.ThrowsAsync<ClientException>(
+            async () => await client.Create(
+                987,
+                assignment,
+                cancellationToken: TestContext.Current.CancellationToken));
+
+        // Assert
+        ex.Message.ShouldBe("No assignment returned from Canvas");
+    }
+
+    [Fact]
+    public async Task CreateViaIdChecksName()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment { Name = string.Empty };
+
+        // Act
+        var ex = await Assert.ThrowsAsync<ClientException>(
+            async () => await client.Create(
+                987,
+                assignment,
+                cancellationToken: TestContext.Current.CancellationToken));
+
+        // Assert
+        ex.Message.ShouldBe("Assignments must have a name - cannot be null or empty");
+    }
+
     [Fact]
     public async Task ListForCourseViaEntityCallsUnderlyingConnection()
     {
@@ -444,5 +598,85 @@ public class AssignmentsClientTests
 
         // Assert
         ex.Message.ShouldBe("No summary returned from Canvas");
+    }
+
+    [Fact]
+    public async Task UpdateCallsUnderlyingConnection()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.PutJson<Assignment>(
+                "/api/v1/courses/987/assignments/149",
+                A<Assignment>.Ignored,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult(new Assignment { Id = 149 }));
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment
+        {
+            Id = 149,
+            CourseId = 987,
+            Name = "An assignment"
+        };
+
+        // Act
+        var updated = await client.Update(
+            987,
+            149,
+            assignment,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        updated.ShouldSatisfyAllConditions(
+            () => updated.ShouldNotBeNull(),
+            () => updated.Id.ShouldBe(149UL),
+            () => updated.CourseId.ShouldBe(987UL)
+        );
+    }
+
+    [Fact]
+    public async Task UpdateChecksCanvasResponse()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.PutJson<Assignment>(
+                "/api/v1/courses/987/assignments/149",
+                A<Assignment>.Ignored,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult<Assignment>(null));
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment { Name = "An assignment" };
+
+        // Act
+        var ex = await Assert.ThrowsAsync<ClientException>(
+            async () => await client.Update(
+                987,
+                149,
+                assignment,
+                cancellationToken: TestContext.Current.CancellationToken));
+
+        // Assert
+        ex.Message.ShouldBe("No assignment returned from Canvas");
+    }
+
+    [Fact]
+    public async Task UpdateChecksName()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment { Name = string.Empty };
+
+        // Act
+        var ex = await Assert.ThrowsAsync<ClientException>(
+            async () => await client.Update(
+                987,
+                149,
+                assignment,
+                cancellationToken: TestContext.Current.CancellationToken));
+
+        // Assert
+        ex.Message.ShouldBe("Assignments must have a name - cannot be null or empty");
     }
 }
