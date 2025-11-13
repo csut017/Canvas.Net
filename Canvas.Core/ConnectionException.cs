@@ -31,27 +31,10 @@ public class ConnectionException
     /// <summary>
     /// The returned content from the call.
     /// </summary>
-    public string? Content { get; set; }
+    public string? Content { get; init; }
 
     /// <summary>
     /// The URL called.
     /// </summary>
     public string Url { get; }
-
-    /// <summary>
-    /// Generates a new <see cref="ConnectionException"/> from an <see cref="HttpRequestMessage"/> instance.
-    /// </summary>
-    /// <param name="url">The URL called.</param>
-    /// <param name="response">The <see cref="HttpResponseMessage"/> instance.</param>
-    /// <returns>A new <see cref="ConnectionException"/> instance.</returns>
-    public static ConnectionException New(string url, HttpResponseMessage? response)
-    {
-        if (response == null) return new ConnectionException(url, "Something went wrong while calling Canvas");
-
-        var exception = new ConnectionException(url, $"Canvas returned a non-success response code [{response.StatusCode}]");
-        using var stream = response.Content.ReadAsStream();
-        using var reader = new StreamReader(stream);
-        exception.Content = reader.ReadToEnd();
-        return exception;
-    }
 }

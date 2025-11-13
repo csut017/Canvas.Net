@@ -34,7 +34,8 @@ public static class ConfigurationExtensions
         {
             var conn = new Connection(url, token)
             {
-                InitialiseResponseStream = LogIncomingContent
+                InitialiseResponseStream = LogIncomingContent,
+                ProcessOutputStream = LogOutgoingContent,
             };
             config.Connection = conn;
             return config;
@@ -68,5 +69,16 @@ public static class ConfigurationExtensions
 
         stream.Seek(0, SeekOrigin.Begin);
         return stream;
+    }
+
+    public static async Task LogOutgoingContent(Connection conn, MemoryStream stream, CancellationToken cancellationToken)
+    {
+        using (var reader = new StreamReader(stream, leaveOpen: true))
+        {
+            var content = await reader.ReadToEndAsync(cancellationToken);
+            conn.Logger?.Debug("Sending: {content}", content);
+        }
+
+        stream.Seek(0, SeekOrigin.Begin);
     }
 }

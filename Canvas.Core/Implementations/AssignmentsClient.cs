@@ -1,9 +1,9 @@
-﻿using Canvas.Core.Clients;
+﻿using System.Runtime.CompilerServices;
+using Canvas.Core.Clients;
 using Canvas.Core.Entities;
 using Canvas.Core.Settings;
 using CommunityToolkit.Diagnostics;
 using Serilog;
-using System.Runtime.CompilerServices;
 
 namespace Canvas.Core.Implementations;
 
@@ -102,8 +102,8 @@ internal class AssignmentsClient
         _logger?.Debug("Creating new assignment in course {courseId} with name {name}", courseId, assignment.Name);
         var item = await _connection.PostJson<Assignment>(
             $"/api/v1/courses/{courseId}/assignments",
-            assignment,
-            false,
+            new { assignment },
+            true,
             cancellationToken);
         if (item == null) throw new ClientException("No assignment returned from Canvas");
         return item with { CourseId = courseId };
@@ -471,11 +471,27 @@ internal class AssignmentsClient
         _logger?.Debug("Updating existing assignment in course {courseId} with name {name} [{assignmentId}]", courseId, assignment.Name, assignmentId);
         var item = await _connection.PutJson<Assignment>(
             $"/api/v1/courses/{courseId}/assignments/{assignmentId}",
-            assignment,
-            false,
+            new { assignment },
+            true,
             cancellationToken);
         if (item == null) throw new ClientException("No assignment returned from Canvas");
         return item with { CourseId = courseId };
+    }
+
+    /// <summary>
+    /// Updates an existing assignment.
+    /// </summary>
+    /// <param name="course">A <see cref="Course"/> instance for the course that owns the assignment.</param>
+    /// <param name="assignment">The assignment details.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>A new <see cref="Assignment"/> instance.</returns>
+    /// <remarks>
+    /// If <c>course</c> is <c>null</c>, then the CourseId must be set in <c>assignment</c>.
+    /// </remarks>
+    public Task<Assignment> Update(Course? course, Assignment assignment, CancellationToken cancellationToken = default)
+    {
+        var courseId = course?.Id ?? assignment.CourseId;
+        return Update(courseId, assignment.Id, assignment, cancellationToken);
     }
 
     /// <summary>
