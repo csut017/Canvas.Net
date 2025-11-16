@@ -69,7 +69,7 @@ public interface IAssignments
     /// <param name="submission">The <see cref="SubmissionFile"/> to download.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A string containing the contents of the submission.</returns>
-    Task<string> DownloadSubmission(SubmissionFile submission, CancellationToken cancellationToken = default);
+    Task<string> DownloadSubmissionAsString(SubmissionFile submission, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Downloads the contents of a submission.
@@ -77,7 +77,7 @@ public interface IAssignments
     /// <param name="submission">The <see cref="SubmissionFile"/> to download.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <param name="stream">The <see cref="Stream"/> to save the contents to.</param>
-    Task DownloadSubmission(SubmissionFile submission, Stream stream, CancellationToken cancellationToken = default);
+    Task DownloadSubmissionToStream(SubmissionFile submission, Stream stream, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Downloads a submission to a file path.
@@ -85,7 +85,7 @@ public interface IAssignments
     /// <param name="submission">The <see cref="SubmissionFile"/> to download.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <param name="path">The path to download the file to.</param>
-    Task DownloadSubmissionTo(SubmissionFile submission, string path, CancellationToken cancellationToken = default);
+    Task DownloadSubmissionToFile(SubmissionFile submission, string path, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lists the assignments for a course.

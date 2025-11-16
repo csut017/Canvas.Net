@@ -115,20 +115,15 @@ internal class AssignmentsClient
     /// <param name="submission">The <see cref="SubmissionFile"/> to download.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A string containing the contents of the submission.</returns>
-    public Task<string> DownloadSubmission(SubmissionFile submission, CancellationToken cancellationToken = default)
+    public async Task<string> DownloadSubmissionAsString(SubmissionFile submission, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Downloads the contents of a submission.
-    /// </summary>
-    /// <param name="submission">The <see cref="SubmissionFile"/> to download.</param>
-    /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
-    /// <param name="stream">The <see cref="Stream"/> to save the contents to.</param>
-    public Task DownloadSubmission(SubmissionFile submission, Stream stream, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
+        _logger?.Debug("Downloading submission from {url}", submission.Url);
+        var response = await _connection.Get(
+            submission.Url,
+            true,
+            cancellationToken);
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+        return body;
     }
 
     /// <summary>
@@ -137,9 +132,29 @@ internal class AssignmentsClient
     /// <param name="submission">The <see cref="SubmissionFile"/> to download.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <param name="path">The path to download the file to.</param>
-    public Task DownloadSubmissionTo(SubmissionFile submission, string path, CancellationToken cancellationToken = default)
+    public async Task DownloadSubmissionToFile(SubmissionFile submission, string path, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        await using var stream = File.Create(path);
+        await DownloadSubmissionToStream(
+            submission,
+            stream,
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Downloads the contents of a submission.
+    /// </summary>
+    /// <param name="submission">The <see cref="SubmissionFile"/> to download.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <param name="stream">The <see cref="Stream"/> to save the contents to.</param>
+    public async Task DownloadSubmissionToStream(SubmissionFile submission, Stream stream, CancellationToken cancellationToken = default)
+    {
+        _logger?.Debug("Downloading submission from {url}", submission.Url);
+        var response = await _connection.Get(
+            submission.Url,
+            true,
+            cancellationToken);
+        await response.Content.CopyToAsync(stream, cancellationToken);
     }
 
     /// <summary>

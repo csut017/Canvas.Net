@@ -18,7 +18,7 @@ public record Submission
     public List<SubmissionComment>? Comments { get; init; }
 
     /// <summary>
-    /// The amount of time, in seconds, that an submission is late by.
+    /// The amount of time, in seconds, that a submission is late by.
     /// </summary>
     [JsonPropertyName("seconds_late")]
     public int? LatenessInSeconds { get; init; }

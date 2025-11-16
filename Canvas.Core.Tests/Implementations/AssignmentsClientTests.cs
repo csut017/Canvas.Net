@@ -1,9 +1,13 @@
-﻿using Canvas.Core.Entities;
+﻿using System;
+using Canvas.Core.Entities;
 using Canvas.Core.Implementations;
 using Canvas.Core.Settings;
 using FakeItEasy;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -164,6 +168,103 @@ public class AssignmentsClientTests
 
         // Assert
         ex.Message.ShouldBe("Assignments must have a name - cannot be null or empty");
+    }
+
+    [Fact]
+    public async Task DownloadSubmissionAsStringHandlesContent()
+    {
+        // Arrange
+        const string url = "http://fake.url";
+        const string serverData = "The data from the server";
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        response.Content = new StringContent(serverData);
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.Get(
+                url,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult(response));
+        var client = new AssignmentsClient(conn);
+        var submission = new SubmissionFile { Url = url };
+
+        // Act
+        var data = await client.DownloadSubmissionAsString(
+            submission,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        data.ShouldBe(serverData);
+    }
+
+    [Fact]
+    public async Task DownloadSubmissionToFileHandlesContent()
+    {
+        // Arrange
+        const string url = "http://fake.url";
+        const string serverData = "The data from the server";
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        response.Content = new StringContent(serverData);
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.Get(
+                url,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult(response));
+        var client = new AssignmentsClient(conn);
+        var submission = new SubmissionFile { Url = url };
+        var path = Path.Combine(Path.GetTempPath(), "downloadtest.txt");
+        if (File.Exists(path)) File.Delete(path);
+
+        // Act
+        try
+        {
+            await client.DownloadSubmissionToFile(
+                submission,
+                path,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert
+            var data = await File.ReadAllTextAsync(
+                path,
+                TestContext.Current.CancellationToken);
+            data.ShouldBe(serverData);
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task DownloadSubmissionToStreamHandlesContent()
+    {
+        // Arrange
+        const string url = "http://fake.url";
+        const string serverData = "The data from the server";
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        response.Content = new StringContent(serverData);
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.Get(
+                url,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult(response));
+        var client = new AssignmentsClient(conn);
+        var submission = new SubmissionFile { Url = url };
+
+        // Act
+        using var stream = new MemoryStream();
+        await client.DownloadSubmissionToStream(
+            submission,
+            stream,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        stream.Seek(0, SeekOrigin.Begin);
+        using var reader = new StreamReader(stream);
+        var data = await reader.ReadToEndAsync(
+            TestContext.Current.CancellationToken);
+        data.ShouldBe(serverData);
     }
 
     [Fact]
