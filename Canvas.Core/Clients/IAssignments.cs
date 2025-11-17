@@ -275,6 +275,18 @@ public interface IAssignments
     Task<Assignment> Update(ulong courseId, ulong assignmentId, Assignment assignment, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Updates an existing assignment.
+    /// </summary>
+    /// <param name="course">A <see cref="Course"/> instance for the course that owns the assignment.</param>
+    /// <param name="assignment">The assignment details.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>A new <see cref="Assignment"/> instance.</returns>
+    /// <remarks>
+    /// If <c>course</c> is <c>null</c>, then the CourseId must be set in <c>assignment</c>.
+    /// </remarks>
+    Task<Assignment> Update(Course? course, Assignment assignment, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Updates an assignment override in an assignment.
     /// </summary>
     /// <param name="courseId">The identifier of the course.</param>

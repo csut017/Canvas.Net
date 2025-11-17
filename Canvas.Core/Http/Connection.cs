@@ -1,10 +1,10 @@
-﻿using Canvas.Core.Settings;
-using CommunityToolkit.Diagnostics;
-using Serilog;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Canvas.Core.Entities;
+using Canvas.Core.Settings;
+using CommunityToolkit.Diagnostics;
+using Serilog;
 
 namespace Canvas.Core.Http;
 
@@ -14,11 +14,13 @@ namespace Canvas.Core.Http;
 public class Connection
     : ILoggingConnection
 {
+    private const string JsonMediaType = "application/json";
     private readonly HttpClient _client;
 
     private readonly JsonSerializerOptions _serializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     /// <summary>
@@ -47,7 +49,7 @@ public class Connection
         url = string.Join("/", parts.Take(length + 1)) + "/";
 
         BaseAddress = url;
-        _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(JsonMediaType));
     }
 
     /// <summary>
@@ -61,13 +63,79 @@ public class Connection
     public ILogger? Logger { get; private set; }
 
     /// <summary>
-    /// Helper function for intialising the stream from a response.
+    /// Helper function for initialising the stream from a response.
     /// </summary>
     /// <remarks>
     /// This function allows for intercepting the content if needed.
     /// </remarks>
     internal Func<Connection, HttpResponseMessage, CancellationToken, Task<Stream>> InitialiseResponseStream { get; set; } =
         (_, resp, cancellationToken) => resp.Content.ReadAsStreamAsync(cancellationToken);
+
+    /// <summary>
+    /// Helper function for processing the stream for a request.
+    /// </summary>
+    /// <remarks>
+    /// This function allows for intercepting the output if needed.
+    /// </remarks>
+    internal Func<Connection, MemoryStream, CancellationToken, Task> ProcessOutputStream { get; set; } = (_, _, _) => Task.CompletedTask;
+
+    /// <summary>
+    /// Checks the response and generates an exception if it has failed.
+    /// </summary>
+    /// <param name="url">The URL called.</param>
+    /// <param name="response">The <see cref="HttpResponseMessage"/> instance.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>A new <see cref="ConnectionException"/> instance.</returns>
+    public async Task CheckResponse(string url, HttpResponseMessage? response, CancellationToken cancellationToken)
+    {
+        if (response == null) throw new ConnectionException(url, "Something went wrong while calling Canvas");
+        if (response.IsSuccessStatusCode) return;
+
+        using var stream = new MemoryStream();
+        await response.Content.CopyToAsync(stream, cancellationToken);
+
+        // Canvas uses two different forms of error responses - so we need to try both of them
+        stream.Seek(0, SeekOrigin.Begin);
+        Exception? error = null;
+        try
+        {
+            var errors = await JsonSerializer.DeserializeAsync<ErrorResponseList>(stream, _serializerOptions, cancellationToken);
+            Guard.IsNotNull(errors);
+            error = new CanvasException(
+                url,
+                $"Canvas returned a non-success response code [{response.StatusCode}]",
+                errors.Errors);
+        }
+        catch
+        {
+            // Ignore the error - we will read an output the response in the next step
+        }
+        if (error != null) throw error;
+
+        stream.Seek(0, SeekOrigin.Begin);
+        try
+        {
+            var errors = await JsonSerializer.DeserializeAsync<ErrorResponseDictionary>(stream, _serializerOptions, cancellationToken);
+            Guard.IsNotNull(errors);
+            error = new CanvasException(
+                url,
+                $"Canvas returned a non-success response code [{response.StatusCode}]",
+                errors.Errors.SelectMany(kvp => kvp.Value));
+        }
+        catch
+        {
+            // Ignore the error - we will read an output the response in the next step
+        }
+        if (error != null) throw error;
+
+        // If all else fails, just extract the content as a string and return that
+        stream.Seek(0, SeekOrigin.Begin);
+        using var reader = new StreamReader(stream);
+        throw new ConnectionException(url, $"Canvas returned a non-success response code [{response.StatusCode}]")
+        {
+            Content = await reader.ReadToEndAsync(cancellationToken)
+        };
+    }
 
     /// <summary>
     /// Performs a GET operation.
@@ -86,7 +154,7 @@ public class Connection
         var response = await _client
             .GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         Logger?.Debug("Received {status} from {url} - GET", response.StatusCode, url);
-        if (throwExceptionOnFailure && !response.IsSuccessStatusCode) throw ConnectionException.New(url, response);
+        if (throwExceptionOnFailure) await CheckResponse(url, response, cancellationToken);
         return response;
     }
 
@@ -136,13 +204,17 @@ public class Connection
     {
         var uri = EnsureAbsoluteUri(url);
         Logger?.Debug("Sending POST to {url}", uri);
-        var response = await _client.PostAsJsonAsync(uri,
-            item,
-            _serializerOptions,
+        using var content = await GenerateJsonContent(item, cancellationToken);
+        var response = await _client.PostAsync(
+            uri,
+            content,
             cancellationToken);
         Logger?.Debug("Received {status} from {url} - POST", response.StatusCode, url);
-        if (throwExceptionOnFailure && !response.IsSuccessStatusCode) throw ConnectionException.New(url, response);
-        return await response.Content.ReadFromJsonAsync<TItem>(_serializerOptions, cancellationToken);
+        if (throwExceptionOnFailure) await CheckResponse(url, response, cancellationToken);
+
+        var json = await InitialiseResponseStream(this, response, cancellationToken);
+        var responseItem = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions, cancellationToken);
+        return responseItem;
     }
 
     /// <summary>
@@ -158,13 +230,17 @@ public class Connection
     {
         var uri = EnsureAbsoluteUri(url);
         Logger?.Debug("Sending PUT to {url}", uri);
-        var response = await _client.PutAsJsonAsync(uri,
-            item,
-            _serializerOptions,
+        using var content = await GenerateJsonContent(item, cancellationToken);
+        var response = await _client.PutAsync(
+            uri,
+            content,
             cancellationToken);
         Logger?.Debug("Received {status} from {url} - POST", response.StatusCode, url);
-        if (throwExceptionOnFailure && !response.IsSuccessStatusCode) throw ConnectionException.New(url, response);
-        return await response.Content.ReadFromJsonAsync<TItem>(_serializerOptions, cancellationToken);
+        if (throwExceptionOnFailure) await CheckResponse(url, response, cancellationToken);
+
+        var json = await InitialiseResponseStream(this, response, cancellationToken);
+        var responseItem = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions, cancellationToken);
+        return responseItem;
     }
 
     /// <summary>
@@ -224,7 +300,29 @@ public class Connection
     /// <returns>A <see cref="Uri"/> containing the URL.</returns>
     private Uri EnsureAbsoluteUri(string url)
     {
+        if (url[0] == '/') url = url[1..];
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) uri = new Uri(BaseAddress + url);
         return uri;
+    }
+
+    private async Task<StreamContent> GenerateJsonContent(object item, CancellationToken cancellationToken)
+    {
+        var stream = new MemoryStream();
+        await JsonSerializer.SerializeAsync(stream, item, _serializerOptions, cancellationToken);
+        stream.Seek(0, SeekOrigin.Begin);
+        await ProcessOutputStream(this, stream, cancellationToken);
+        var content = new StreamContent(stream);
+        content.Headers.ContentType = new MediaTypeHeaderValue(JsonMediaType);
+        return content;
+    }
+
+    private record ErrorResponseList
+    {
+        public required Error[] Errors { get; init; }
+    }
+
+    private record ErrorResponseDictionary
+    {
+        public required Dictionary<string, Error[]> Errors { get; init; }
     }
 }

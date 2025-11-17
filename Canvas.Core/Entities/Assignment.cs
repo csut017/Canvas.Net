@@ -37,25 +37,25 @@ public record Assignment
     /// The group that the assignment is part of.
     /// </summary>
     [JsonPropertyName("assignment_group_id")]
-    public ulong GroupId { get; init; }
+    public ulong? GroupId { get; init; }
 
     /// <summary>
     /// A flag indicating whether the assignment is published.
     /// </summary>
     [JsonPropertyName("published")]
-    public bool IsPublished { get; init; }
+    public bool? IsPublished { get; init; }
 
     /// <summary>
     /// The number of dates for this assignment.
     /// </summary>
     [JsonPropertyName("all_dates_count")]
-    public int NumberOfDates { get; init; }
+    public int? NumberOfDates { get; init; }
 
     /// <summary>
     /// A flag indicating whether the grade for this assignment should be omitted from the final grade.
     /// </summary>
     [JsonPropertyName("omit_from_final_grade")]
-    public bool OmitFromFinalGrade { get; init; }
+    public bool? OmitFromFinalGrade { get; init; }
 
     /// <summary>
     /// The maximum number of points possible for this assignment.
@@ -66,7 +66,7 @@ public record Assignment
     /// <summary>
     /// The position within the course or assignment group.
     /// </summary>
-    public int Position { get; init; }
+    public int? Position { get; init; }
 
     /// <summary>
     /// The associated marking rubric.
@@ -77,7 +77,7 @@ public record Assignment
     /// The types of submission allowed.
     /// </summary>
     [JsonPropertyName("submission_types")]
-    public string[] SubmissionTypes { get; init; } = [];
+    public string[]? SubmissionTypes { get; init; } = [];
 
     /// <summary>
     /// The URL to the assignment's web page.

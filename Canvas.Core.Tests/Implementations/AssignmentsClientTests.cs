@@ -1,15 +1,15 @@
-﻿using System;
-using Canvas.Core.Entities;
+﻿using Canvas.Core.Entities;
 using Canvas.Core.Implementations;
 using Canvas.Core.Settings;
 using FakeItEasy;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Canvas.Core.Entities;
+using Canvas.Core.Implementations;
+using Canvas.Core.Settings;
+using FakeItEasy;
 
 namespace Canvas.Core.Tests.Implementations;
 
@@ -23,7 +23,7 @@ public class AssignmentsClientTests
         var conn = A.Fake<IConnection>();
         A.CallTo(() => conn.PostJson<Assignment>(
                 "/api/v1/courses/987/assignments",
-                A<Assignment>.Ignored,
+                A<object>.Ignored,
                 A<bool>.Ignored,
                 A<CancellationToken>.Ignored))
             .Returns(Task.FromResult(new Assignment { Id = 149 }));
@@ -56,7 +56,7 @@ public class AssignmentsClientTests
         var conn = A.Fake<IConnection>();
         A.CallTo(() => conn.PostJson<Assignment>(
                 "/api/v1/courses/987/assignments",
-                A<Assignment>.Ignored,
+                A<object>.Ignored,
                 A<bool>.Ignored,
                 A<CancellationToken>.Ignored))
             .Returns(Task.FromResult<Assignment>(null));
@@ -100,7 +100,7 @@ public class AssignmentsClientTests
         var conn = A.Fake<IConnection>();
         A.CallTo(() => conn.PostJson<Assignment>(
                 "/api/v1/courses/987/assignments",
-                A<Assignment>.Ignored,
+                A<object>.Ignored,
                 A<bool>.Ignored,
                 A<CancellationToken>.Ignored))
             .Returns(Task.FromResult(new Assignment { Id = 149 }));
@@ -133,7 +133,7 @@ public class AssignmentsClientTests
         var conn = A.Fake<IConnection>();
         A.CallTo(() => conn.PostJson<Assignment>(
                 "/api/v1/courses/987/assignments",
-                A<Assignment>.Ignored,
+                A<object>.Ignored,
                 A<bool>.Ignored,
                 A<CancellationToken>.Ignored))
             .Returns(Task.FromResult<Assignment>(null));
@@ -708,7 +708,7 @@ public class AssignmentsClientTests
         var conn = A.Fake<IConnection>();
         A.CallTo(() => conn.PutJson<Assignment>(
                 "/api/v1/courses/987/assignments/149",
-                A<Assignment>.Ignored,
+                A<object>.Ignored,
                 A<bool>.Ignored,
                 A<CancellationToken>.Ignored))
             .Returns(Task.FromResult(new Assignment { Id = 149 }));
@@ -742,7 +742,7 @@ public class AssignmentsClientTests
         var conn = A.Fake<IConnection>();
         A.CallTo(() => conn.PutJson<Assignment>(
                 "/api/v1/courses/987/assignments/149",
-                A<Assignment>.Ignored,
+                A<object>.Ignored,
                 A<bool>.Ignored,
                 A<CancellationToken>.Ignored))
             .Returns(Task.FromResult<Assignment>(null));
