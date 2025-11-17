@@ -1,10 +1,10 @@
-﻿using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
-using Canvas.Core.Entities;
+﻿using Canvas.Core.Entities;
 using Canvas.Core.Settings;
 using CommunityToolkit.Diagnostics;
 using Serilog;
+using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace Canvas.Core.Http;
 
@@ -221,6 +221,33 @@ public class Connection
     /// Performs a PUT operation passing in a JSON object, and deserializing the JSON response.
     /// </summary>
     /// <param name="url">The URL to use.</param>
+    /// <param name="values">The values to upload to Canvas.</param>
+    /// <param name="throwExceptionOnFailure">Whether to throw an exception if the server returns a non-success code.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>A <see cref="TItem"/> instance containing the response.</returns>
+    public async Task<TItem?> PutForm<TItem>(string url, Parameters values, bool throwExceptionOnFailure = true,
+        CancellationToken cancellationToken = default) where TItem : class
+    {
+        var uri = EnsureAbsoluteUri(url);
+        Logger?.Debug("Sending PUT to {url}", uri);
+        var content = new FormUrlEncodedContent(
+            values.Select(p => KeyValuePair.Create(p.Name, p.Value)));
+        var response = await _client.PutAsync(
+            uri,
+            content,
+            cancellationToken);
+        Logger?.Debug("Received {status} from {url} - POST", response.StatusCode, url);
+        if (throwExceptionOnFailure) await CheckResponse(url, response, cancellationToken);
+
+        var json = await InitialiseResponseStream(this, response, cancellationToken);
+        var responseItem = await JsonSerializer.DeserializeAsync<TItem>(json, _serializerOptions, cancellationToken);
+        return responseItem;
+    }
+
+    /// <summary>
+    /// Performs a PUT operation passing in a JSON object, and deserializing the JSON response.
+    /// </summary>
+    /// <param name="url">The URL to use.</param>
     /// <param name="item">The item to convert to JSON.</param>
     /// <param name="throwExceptionOnFailure">Whether to throw an exception if the server returns a non-success code.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
@@ -273,6 +300,24 @@ public class Connection
     public void UpdateLogger(ILogger logger)
     {
         Logger = logger.ForContext<Connection>();
+    }
+
+    /// <summary>
+    /// Uploads a file to Canvas.
+    /// </summary>
+    /// <typeparam name="TItem">The type of entity to receive at the end of the process.</typeparam>
+    /// <param name="url">The URL to trigger the process.</param>
+    /// <param name="values">The additional values to pass.</param>
+    /// <param name="file">The file to upload.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>A <see cref="TItem"/> instance containing the final response.</returns>
+    public Task<TItem> UploadFile<TItem>(
+        string url,
+        Parameters values,
+        FileUpload file,
+        CancellationToken cancellationToken = default) where TItem : class
+    {
+        throw new NotImplementedException();
     }
 
     /// <summary>

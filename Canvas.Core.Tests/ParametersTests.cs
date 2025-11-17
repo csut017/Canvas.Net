@@ -18,6 +18,32 @@ public class ParametersTests
         Third = 4,
     }
 
+    [Fact]
+    public void AddBooleanReturnsParameters()
+    {
+        // Arrange
+        var parameters = new Parameters();
+
+        // Act
+        var result = parameters.Add("test", true);
+
+        // Assert
+        result.ShouldBeSameAs(parameters);
+    }
+
+    [Fact]
+    public void AddEnumReturnsParameters()
+    {
+        // Arrange
+        var parameters = new Parameters();
+
+        // Act
+        var result = parameters.Add("test", DayOfWeek.Monday);
+
+        // Assert
+        result.ShouldBeSameAs(parameters);
+    }
+
     [Theory]
     [InlineData(true, "true")]
     [InlineData(false, "false")]
@@ -120,6 +146,55 @@ public class ParametersTests
 
         // Assert
         parameters.ShouldNotContain(p => p.Name == "include[]" && p.Value == "none");
+    }
+
+    [Fact]
+    public void AddIntReturnsParameters()
+    {
+        // Arrange
+        var parameters = new Parameters();
+
+        // Act
+        var result = parameters.Add("test", 3);
+
+        // Assert
+        result.ShouldBeSameAs(parameters);
+    }
+
+    [Fact]
+    public void AddStringReturnsParameters()
+    {
+        // Arrange
+        var parameters = new Parameters();
+
+        // Act
+        var result = parameters.Add("test", "true");
+
+        // Assert
+        result.ShouldBeSameAs(parameters);
+    }
+
+    [Fact]
+    public void AddULongReturnsParameters()
+    {
+        // Arrange
+        var parameters = new Parameters();
+
+        // Act
+        var result = parameters.Add("test", 1UL);
+
+        // Assert
+        result.ShouldBeSameAs(parameters);
+    }
+
+    [Fact]
+    public void NewGeneratesAnInstance()
+    {
+        // Act
+        var instance = Parameters.New();
+
+        // Assert
+        instance.ShouldBeOfType<Parameters>();
     }
 
     [Fact]

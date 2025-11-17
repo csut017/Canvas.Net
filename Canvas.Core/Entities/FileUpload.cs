@@ -72,11 +72,11 @@ public record FileUpload
     /// Generates the arguments for uploading the file.
     /// </summary>
     /// <returns>A <see cref="Dictionary{String, String}"/> containing the arguments for the upload.</returns>
-    public Dictionary<string, string> GenerateUploadArgs()
+    public Parameters GenerateUploadArgs()
     {
-        var args = new Dictionary<string, string>
+        var args = new Parameters
         {
-            ["name"] = Name,
+            {"name", Name},
         };
         if (Size.HasValue) args.Add("size", Size.Value.ToString());
         if (!string.IsNullOrEmpty(Type)) args.Add("content_type", Type);

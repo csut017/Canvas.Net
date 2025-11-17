@@ -189,6 +189,7 @@ public class ConnectionTests
             () => resp.ShouldNotBeNull(),
             () => resp?.Id.ShouldBe(1124)
         );
+        handler.Data.ShouldBe("{\"id\":1124}");
     }
 
     [Fact]
@@ -211,6 +212,28 @@ public class ConnectionTests
     }
 
     [Fact]
+    public async Task PutFormCallsClientAndDeserializesJson()
+    {
+        // Arrange
+        var data = new FakeDataItem(1124);
+        var handler = new FakeJsonHandler(data, HttpStatusCode.OK);
+        var client = new HttpClient(handler);
+        var conn = new Connection("http://canvas.com", "1234", client: client);
+        var values = Parameters.New()
+            .Add("name", "value");
+
+        // Act
+        var resp = await conn.PutForm<FakeDataItem>(
+            "api/v1/test",
+            values,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        resp.ShouldBeEquivalentTo(data);
+        handler.Data.ShouldBe("name=value");
+    }
+
+    [Fact]
     public async Task PutJsonCallsClientAndDeserializesJson()
     {
         // Arrange
@@ -227,6 +250,7 @@ public class ConnectionTests
 
         // Assert
         resp.ShouldBeEquivalentTo(data);
+        handler.Data.ShouldBe("{\"id\":1124}");
     }
 
     [Fact]

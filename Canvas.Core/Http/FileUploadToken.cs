@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace Canvas.Core.Http;
+﻿namespace Canvas.Core.Http;
 
 /// <summary>
 /// The upload token returned from Canvas.

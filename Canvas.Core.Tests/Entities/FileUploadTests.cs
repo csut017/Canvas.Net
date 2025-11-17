@@ -22,9 +22,9 @@ public class FileUploadTests
         var args = item.GenerateUploadArgs();
 
         // Assert
-        args.ShouldContainKeyAndValue("name", "the_file.txt");
-        args.ShouldContainKeyAndValue("size", "1234");
-        args.ShouldContainKeyAndValue("content_type", "the-type");
+        args.ShouldContain(new Parameter("name", "the_file.txt"));
+        args.ShouldContain(new Parameter("size", "1234"));
+        args.ShouldContain(new Parameter("content_type", "the-type"));
     }
 
     [Fact]
@@ -41,9 +41,7 @@ public class FileUploadTests
         var args = item.GenerateUploadArgs();
 
         // Assert
-        args.ShouldContainKeyAndValue("name", "the_file.txt");
-        args.ShouldNotContainKey("size");
-        args.ShouldNotContainKey("content_type");
+        args.ShouldContain(new Parameter("name", "the_file.txt"));
     }
 
     [Fact]

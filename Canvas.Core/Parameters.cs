@@ -1,6 +1,6 @@
-﻿using System.Net;
+﻿using Humanizer;
+using System.Net;
 using System.Reflection;
-using Humanizer;
 
 namespace Canvas.Core;
 
@@ -11,17 +11,24 @@ public class Parameters
     : List<Parameter>
 {
     /// <summary>
+    /// Generates a new empty <see cref="Parameters"/> instance.
+    /// </summary>
+    /// <returns>The new <see cref="Parameters"/> instance.</returns>
+    public static Parameters New()
+    {
+        return [];
+    }
+
+    /// <summary>
     /// Adds a new string parameter.
     /// </summary>
     /// <param name="name">The name of the parameter.</param>
     /// <param name="value">The value of the parameter.</param>
-    public void Add(string name, string value)
+    /// <returns>The <see cref="Parameters"/> instance.</returns>
+    public Parameters Add(string name, string value)
     {
-        Add(new Parameter
-        {
-            Name = name,
-            Value = value
-        });
+        Add(new Parameter(name, value));
+        return this;
     }
 
     /// <summary>
@@ -29,13 +36,11 @@ public class Parameters
     /// </summary>
     /// <param name="name">The name of the parameter.</param>
     /// <param name="value">The value of the parameter.</param>
-    public void Add(string name, int value)
+    /// <returns>The <see cref="Parameters"/> instance.</returns>
+    public Parameters Add(string name, int value)
     {
-        Add(new Parameter
-        {
-            Name = name,
-            Value = value.ToString()
-        });
+        Add(new Parameter(name, value.ToString()));
+        return this;
     }
 
     /// <summary>
@@ -43,13 +48,11 @@ public class Parameters
     /// </summary>
     /// <param name="name">The name of the parameter.</param>
     /// <param name="value">The value of the parameter.</param>
-    public void Add(string name, bool value)
+    /// <returns>The <see cref="Parameters"/> instance.</returns>
+    public Parameters Add(string name, bool value)
     {
-        Add(new Parameter
-        {
-            Name = name,
-            Value = value ? "true" : "false",
-        });
+        Add(new Parameter(name, value ? "true" : "false"));
+        return this;
     }
 
     /// <summary>
@@ -57,13 +60,11 @@ public class Parameters
     /// </summary>
     /// <param name="name">The name of the parameter.</param>
     /// <param name="value">The value of the parameter.</param>
-    public void Add(string name, ulong value)
+    /// <returns>The <see cref="Parameters"/> instance.</returns>
+    public Parameters Add(string name, ulong value)
     {
-        Add(new Parameter
-        {
-            Name = name,
-            Value = value.ToString()
-        });
+        Add(new Parameter(name, value.ToString()));
+        return this;
     }
 
     /// <summary>
@@ -71,32 +72,24 @@ public class Parameters
     /// </summary>
     /// <param name="name">The name of the parameter.</param>
     /// <param name="value">The value of the parameter.</param>
-    public void Add<TEnum>(string name, TEnum value)
+    /// <returns>The <see cref="Parameters"/> instance.</returns>
+    public Parameters Add<TEnum>(string name, TEnum value)
         where TEnum : struct, Enum
     {
         var isFlags = typeof(TEnum).GetCustomAttribute<FlagsAttribute>() != null;
         if (!isFlags)
         {
-            Add(new Parameter
-            {
-                Name = name,
-                Value = value.ToString().ToLowerInvariant(),
-            });
-            return;
+            Add(new Parameter(name, value.ToString().ToLowerInvariant()));
+            return this;
         }
 
         foreach (var flag in Enum.GetValues<TEnum>())
         {
             if (flag.Equals(default(TEnum)) || !value.HasFlag(flag)) continue;
 
-            Add(new Parameter
-            {
-                Name = name,
-                Value = flag.ToString()
-                    .Underscore()
-                    .ToLowerInvariant(),
-            });
+            Add(new Parameter(name, flag.ToString().Underscore().ToLowerInvariant()));
         }
+        return this;
     }
 
     /// <summary>

@@ -1,9 +1,9 @@
-﻿using System.Runtime.CompilerServices;
-using Canvas.Core.Clients;
+﻿using Canvas.Core.Clients;
 using Canvas.Core.Entities;
 using Canvas.Core.Settings;
 using CommunityToolkit.Diagnostics;
 using Serilog;
+using System.Runtime.CompilerServices;
 
 namespace Canvas.Core.Implementations;
 
@@ -55,10 +55,40 @@ internal class AssignmentsClient
     /// <param name="file">An optional file to associate with the comment.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>A <see cref="Submission"/> instance containing the result from Canvas.</returns>
-    public Task<Submission> AddComment(ulong courseId, ulong assignmentId, ulong studentId, string comment, FileUpload? file,
+    public async Task<Submission> AddComment(
+        ulong courseId,
+        ulong assignmentId,
+        ulong studentId,
+        string comment,
+        FileUpload? file,
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var url = $"/api/v1/courses/{courseId}/assignments/{assignmentId}/submissions/{studentId}";
+
+        // Generate the values
+        var values = Parameters.New()
+            .Add("comment[text_comment]", comment);
+        if (file != null)
+        {
+            _logger?.Debug("Uploading comment file for student {studentId} for {assignmentId} in {courseId}", studentId, assignmentId, courseId);
+            var fileUrl = $"/api/v1/courses/{courseId}/assignments/{assignmentId}/submissions/{studentId}/comments/files";
+            var attachmentInfo = await _connection.UploadFile<Submission>(
+                fileUrl,
+                file.GenerateUploadArgs(),
+                file,
+                cancellationToken);
+            values.Add("comment[file_ids][]", attachmentInfo.Id.ToString());
+        }
+
+        // Send the data and check the response
+        _logger?.Debug("Adding comment to student {studentId} for {assignmentId} in {courseId}", studentId, assignmentId, courseId);
+        var response = await _connection.PutForm<Submission>(
+            url,
+            values,
+            true,
+            cancellationToken);
+        Guard.IsNotNull(response);
+        return response with { CourseId = courseId };
     }
 
     /// <summary>
@@ -74,7 +104,13 @@ internal class AssignmentsClient
     public Task<Submission> AddComment(Course course, Assignment assignment, User student, string comment, FileUpload? file,
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return AddComment(
+            course.Id,
+            assignment.Id,
+            student.Id,
+            comment,
+            file,
+            cancellationToken);
     }
 
     /// <summary>

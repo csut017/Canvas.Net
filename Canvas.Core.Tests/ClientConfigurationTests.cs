@@ -1,4 +1,5 @@
-﻿using Canvas.Core.Settings;
+﻿using Canvas.Core.Entities;
+using Canvas.Core.Settings;
 using FakeItEasy;
 using Serilog;
 using System;
@@ -95,6 +96,12 @@ public class ClientConfigurationTests
             throw new NotImplementedException();
         }
 
+        public Task<TItem> PutForm<TItem>(string url, Parameters values, bool throwExceptionOnFailure = true,
+            CancellationToken cancellationToken = default) where TItem : class
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<TItem> PutJson<TItem>(string url, object item, bool throwExceptionOnFailure = true,
             CancellationToken cancellationToken = default) where TItem : class
         {
@@ -109,6 +116,11 @@ public class ClientConfigurationTests
         public void UpdateLogger(ILogger logger)
         {
             Logger = logger;
+        }
+
+        public Task<TItem> UploadFile<TItem>(string url, Parameters values, FileUpload file, CancellationToken cancellationToken = default) where TItem : class
+        {
+            throw new NotImplementedException();
         }
     }
 }

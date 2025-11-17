@@ -3,19 +3,143 @@ using Canvas.Core.Implementations;
 using Canvas.Core.Settings;
 using FakeItEasy;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Canvas.Core.Entities;
-using Canvas.Core.Implementations;
-using Canvas.Core.Settings;
-using FakeItEasy;
 
 namespace Canvas.Core.Tests.Implementations;
 
 [TestSubject(typeof(AssignmentsClient))]
 public class AssignmentsClientTests
 {
+    [Fact]
+    public async Task AddCommentByEntityCallsByIdUnderlyingConnection()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.PutForm<Submission>(
+                "/api/v1/courses/987/assignments/149/submissions/741",
+                A<Parameters>.Ignored,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult(new Submission { Id = 149 }));
+        var client = new AssignmentsClient(conn);
+
+        // Act
+        var updated = await client.AddComment(
+            new Course { Id = 987 },
+            new Assignment { Id = 149 },
+            new User { Id = 741 },
+            "A comment",
+            null,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        A.CallTo(() => conn.PutForm<Submission>(
+                "/api/v1/courses/987/assignments/149/submissions/741",
+                A<Parameters>.That.Contains(new Parameter("comment[text_comment]", "A comment")),
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .MustHaveHappenedOnceExactly();
+        updated.ShouldSatisfyAllConditions(
+            () => updated.ShouldNotBeNull(),
+            () => updated.Id.ShouldBe(149UL),
+            () => updated.CourseId.ShouldBe(987UL)
+        );
+    }
+
+    [Fact]
+    public async Task AddCommentByIdCallsByIdUnderlyingConnection()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.PutForm<Submission>(
+                "/api/v1/courses/987/assignments/149/submissions/741",
+                A<Parameters>.Ignored,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult(new Submission { Id = 149 }));
+        var client = new AssignmentsClient(conn);
+
+        // Act
+        var updated = await client.AddComment(
+            987,
+            149,
+            741,
+            "A comment",
+            null,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        A.CallTo(() => conn.PutForm<Submission>(
+                "/api/v1/courses/987/assignments/149/submissions/741",
+                A<Parameters>.That.Contains(new Parameter("comment[text_comment]", "A comment")),
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .MustHaveHappenedOnceExactly();
+        updated.ShouldSatisfyAllConditions(
+            () => updated.ShouldNotBeNull(),
+            () => updated.Id.ShouldBe(149UL),
+            () => updated.CourseId.ShouldBe(987UL)
+        );
+    }
+
+    [Fact]
+    public async Task AddCommentByIdWithFileCallsByIdUnderlyingConnection()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        var file = new FileUpload
+        {
+            Name = "test.txt",
+            Stream = new MemoryStream("Some data"u8.ToArray()),
+        };
+        A.CallTo(() => conn.PutForm<Submission>(
+                "/api/v1/courses/987/assignments/149/submissions/741",
+                A<Parameters>.Ignored,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult(new Submission { Id = 149 }));
+        A.CallTo(() => conn.UploadFile<Submission>(
+            "/api/v1/courses/987/assignments/149/submissions/741/comments/files",
+            A<Parameters>.Ignored,
+            file,
+            A<CancellationToken>.Ignored))
+            .Returns(new Submission { Id = 112358 });
+        var client = new AssignmentsClient(conn);
+
+        // Act
+        var updated = await client.AddComment(
+            987,
+            149,
+            741,
+            "A comment",
+            file,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        A.CallTo(() => conn.UploadFile<Submission>(
+                "/api/v1/courses/987/assignments/149/submissions/741/comments/files",
+                A<Parameters>.Ignored,
+                file,
+                A<CancellationToken>.Ignored))
+            .MustHaveHappenedOnceExactly();
+        A.CallTo(() => conn.PutForm<Submission>(
+                "/api/v1/courses/987/assignments/149/submissions/741",
+                A<Parameters>.That.Contains(new Parameter("comment[file_ids][]", "112358")),
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .MustHaveHappenedOnceExactly();
+        updated.ShouldSatisfyAllConditions(
+            () => updated.ShouldNotBeNull(),
+            () => updated.Id.ShouldBe(149UL),
+            () => updated.CourseId.ShouldBe(987UL)
+        );
+    }
+
     [Fact]
     public async Task CreateViaEntityCallsUnderlyingConnection()
     {
@@ -702,6 +826,162 @@ public class AssignmentsClientTests
     }
 
     [Fact]
+    public async Task UpdateByEntityCallsByIdUnderlyingConnection()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.PutJson<Assignment>(
+                "/api/v1/courses/987/assignments/149",
+                A<object>.Ignored,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult(new Assignment { Id = 149 }));
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment
+        {
+            Id = 149,
+            CourseId = 987,
+            Name = "An assignment"
+        };
+
+        // Act
+        var updated = await client.Update(
+            new Course { Id = 987 },
+            assignment,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        updated.ShouldSatisfyAllConditions(
+            () => updated.ShouldNotBeNull(),
+            () => updated.Id.ShouldBe(149UL),
+            () => updated.CourseId.ShouldBe(987UL)
+        );
+    }
+
+    [Fact]
+    public async Task UpdateByEntityChecksCanvasResponse()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.PutJson<Assignment>(
+                "/api/v1/courses/987/assignments/149",
+                A<object>.Ignored,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult<Assignment>(null));
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment { Id = 149, Name = "An assignment" };
+
+        // Act
+        var ex = await Assert.ThrowsAsync<ClientException>(
+            async () => await client.Update(
+                new Course { Id = 987 },
+                assignment,
+                cancellationToken: TestContext.Current.CancellationToken));
+
+        // Assert
+        ex.Message.ShouldBe("No assignment returned from Canvas");
+    }
+
+    [Fact]
+    public async Task UpdateByEntityChecksName()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment { Id = 149, Name = string.Empty };
+
+        // Act
+        var ex = await Assert.ThrowsAsync<ClientException>(
+            async () => await client.Update(
+                new Course { Id = 987 },
+                assignment,
+                cancellationToken: TestContext.Current.CancellationToken));
+
+        // Assert
+        ex.Message.ShouldBe("Assignments must have a name - cannot be null or empty");
+    }
+
+    [Fact]
+    public async Task UpdateByEntityUsesCourseIdInEntity()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.PutJson<Assignment>(
+                "/api/v1/courses/987/assignments/149",
+                A<object>.Ignored,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult(new Assignment { Id = 149 }));
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment
+        {
+            Id = 149,
+            CourseId = 987,
+            Name = "An assignment"
+        };
+
+        // Act
+        var updated = await client.Update(
+            null,
+            assignment,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        updated.ShouldSatisfyAllConditions(
+            () => updated.ShouldNotBeNull(),
+            () => updated.Id.ShouldBe(149UL),
+            () => updated.CourseId.ShouldBe(987UL)
+        );
+    }
+
+    [Fact]
+    public async Task UpdateByIdChecksCanvasResponse()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        A.CallTo(() => conn.PutJson<Assignment>(
+                "/api/v1/courses/987/assignments/149",
+                A<object>.Ignored,
+                A<bool>.Ignored,
+                A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult<Assignment>(null));
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment { Name = "An assignment" };
+
+        // Act
+        var ex = await Assert.ThrowsAsync<ClientException>(
+            async () => await client.Update(
+                987,
+                149,
+                assignment,
+                cancellationToken: TestContext.Current.CancellationToken));
+
+        // Assert
+        ex.Message.ShouldBe("No assignment returned from Canvas");
+    }
+
+    [Fact]
+    public async Task UpdateByIdChecksName()
+    {
+        // Arrange
+        var conn = A.Fake<IConnection>();
+        var client = new AssignmentsClient(conn);
+        var assignment = new Assignment { Name = string.Empty };
+
+        // Act
+        var ex = await Assert.ThrowsAsync<ClientException>(
+            async () => await client.Update(
+                987,
+                149,
+                assignment,
+                cancellationToken: TestContext.Current.CancellationToken));
+
+        // Assert
+        ex.Message.ShouldBe("Assignments must have a name - cannot be null or empty");
+    }
+
+    [Fact]
     public async Task UpdateCallsUnderlyingConnection()
     {
         // Arrange
@@ -733,51 +1013,5 @@ public class AssignmentsClientTests
             () => updated.Id.ShouldBe(149UL),
             () => updated.CourseId.ShouldBe(987UL)
         );
-    }
-
-    [Fact]
-    public async Task UpdateChecksCanvasResponse()
-    {
-        // Arrange
-        var conn = A.Fake<IConnection>();
-        A.CallTo(() => conn.PutJson<Assignment>(
-                "/api/v1/courses/987/assignments/149",
-                A<object>.Ignored,
-                A<bool>.Ignored,
-                A<CancellationToken>.Ignored))
-            .Returns(Task.FromResult<Assignment>(null));
-        var client = new AssignmentsClient(conn);
-        var assignment = new Assignment { Name = "An assignment" };
-
-        // Act
-        var ex = await Assert.ThrowsAsync<ClientException>(
-            async () => await client.Update(
-                987,
-                149,
-                assignment,
-                cancellationToken: TestContext.Current.CancellationToken));
-
-        // Assert
-        ex.Message.ShouldBe("No assignment returned from Canvas");
-    }
-
-    [Fact]
-    public async Task UpdateChecksName()
-    {
-        // Arrange
-        var conn = A.Fake<IConnection>();
-        var client = new AssignmentsClient(conn);
-        var assignment = new Assignment { Name = string.Empty };
-
-        // Act
-        var ex = await Assert.ThrowsAsync<ClientException>(
-            async () => await client.Update(
-                987,
-                149,
-                assignment,
-                cancellationToken: TestContext.Current.CancellationToken));
-
-        // Assert
-        ex.Message.ShouldBe("Assignments must have a name - cannot be null or empty");
     }
 }
